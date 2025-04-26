@@ -1,0 +1,104 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Default Caption Service
+    |--------------------------------------------------------------------------
+    |
+    | The default service to use for generating image captions.
+    | Currently supported: 'moondream'
+    |
+    */
+    'service' => 'moondream',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Service Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration options for the available caption services.
+    |
+    */
+    'services' => [
+        'moondream' => [
+            // Whether to use the cloud API or a local endpoint
+            'mode' => env('MOONDREAM_MODE', 'cloud'), // 'cloud' or 'local'
+
+            // Cloud API configuration
+            'cloud' => [
+                'api_key' => env('MOONDREAM_API_KEY'),
+                'endpoint' => env('MOONDREAM_CLOUD_ENDPOINT', 'https://api.moondream.ai/v1/caption'),
+            ],
+
+            // Local endpoint configuration
+            'local' => [
+                'endpoint' => env('MOONDREAM_LOCAL_ENDPOINT', 'http://localhost:2020/v1/caption'),
+            ],
+        ],
+        // Add other services here in the future
+        // 'another_service' => [...],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Alt Text Field
+    |--------------------------------------------------------------------------
+    |
+    | The field name where alt text should be stored on assets.
+    | This typically defaults to 'alt'.
+    |
+    */
+    'alt_text_field' => 'alt',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Batch Processing Size
+    |--------------------------------------------------------------------------
+    |
+    | Default batch size for processing multiple assets via the CLI command.
+    |
+    */
+    'batch_size' => 50,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logging
+    |--------------------------------------------------------------------------
+    |
+    | Whether to log successful caption generations and errors.
+    | Useful for debugging.
+    |
+    */
+    'log_completions' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Field Action Enabled Fields
+    |--------------------------------------------------------------------------
+    |
+    | List of field handles where the 'Generate Alt Text' action should appear
+    | in the Control Panel (controlled via JavaScript).
+    |
+    */
+    'action_enabled_fields' => [
+        'alt',
+        'alt_text',
+        'alternative_text',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maximum Image Dimension for Captioning
+    |--------------------------------------------------------------------------
+    |
+    | Specify the maximum dimension (width or height) in pixels for images
+    | sent to the captioning service. Images exceeding this will be resized
+    | proportionally before processing to reduce payload size and cost.
+    | Set to null to disable resizing.
+    |
+    */
+    'max_dimension_pixels' => env('AUTO_ALT_TEXT_MAX_DIMENSION', 1920), // Default to 1920px
+];
