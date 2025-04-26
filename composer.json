@@ -1,0 +1,37 @@
+{
+    "name": "el-schneider/statamic-auto-alt-text",
+    "autoload": {
+        "psr-4": {
+            "ElSchneider\\StatamicAutoAltText\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ElSchneider\\StatamicAutoAltText\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "statamic/cms": "^5.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pixelfear/composer-dist-plugin": true
+        }
+    },
+    "extra": {
+        "statamic": {
+            "name": "Statamic Auto Alt Text",
+            "description": "Statamic Auto Alt Text addon"
+        },
+        "laravel": {
+            "providers": [
+                "ElSchneider\\StatamicAutoAltText\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
