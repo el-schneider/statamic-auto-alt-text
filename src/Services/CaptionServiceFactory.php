@@ -16,7 +16,7 @@ final class CaptionServiceFactory
 
     public function make(): CaptionService
     {
-        $service = config('auto-alt-text.service', 'moondream');
+        $service = config('statamic.auto-alt-text.service', 'moondream');
 
         return match ($service) {
             'moondream' => $this->container->make(MoondreamService::class),

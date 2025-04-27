@@ -32,14 +32,14 @@ final class MoondreamService implements CaptionService
     public function __construct(HttpClient $httpClient)
     {
         $this->httpClient = $httpClient;
-        $this->mode = config('auto-alt-text.services.moondream.mode', 'cloud');
-        $this->maxDimensionPixels = config('auto-alt-text.max_dimension_pixels');
+        $this->mode = config('statamic.auto-alt-text.services.moondream.mode', 'cloud');
+        $this->maxDimensionPixels = config('statamic.auto-alt-text.max_dimension_pixels');
 
         if ($this->mode === 'cloud') {
-            $this->endpoint = config('auto-alt-text.services.moondream.cloud.endpoint');
-            $this->apiKey = config('auto-alt-text.services.moondream.cloud.api_key');
+            $this->endpoint = config('statamic.auto-alt-text.services.moondream.cloud.endpoint');
+            $this->apiKey = config('statamic.auto-alt-text.services.moondream.cloud.api_key');
         } else {
-            $this->endpoint = config('auto-alt-text.services.moondream.local.endpoint');
+            $this->endpoint = config('statamic.auto-alt-text.services.moondream.local.endpoint');
             $this->apiKey = null;
         }
     }
@@ -63,7 +63,7 @@ final class MoondreamService implements CaptionService
             $response = $this->makeApiRequest($base64Image);
             $caption = $response['caption'] ?? null;
 
-            if ($caption && config('auto-alt-text.log_completions', true)) {
+            if ($caption && config('statamic.auto-alt-text.log_completions', true)) {
                 Log::info("Generated caption for {$asset->path()}: {$caption}");
             }
 
@@ -96,7 +96,7 @@ final class MoondreamService implements CaptionService
             } catch (Exception $e) {
                 $results[$asset->id()] = null;
 
-                if (config('auto-alt-text.log_completions', true)) {
+                if (config('statamic.auto-alt-text.log_completions', true)) {
                     Log::error("Error in batch caption generation for {$asset->path()}: {$e->getMessage()}");
                 }
                 // Continue processing other assets in the batch
@@ -193,7 +193,7 @@ final class MoondreamService implements CaptionService
 
     private function makeApiRequest(string $base64Image): array
     {
-        $client = $this->httpClient->timeout(config('auto-alt-text.api_timeout', 30));
+        $client = $this->httpClient->timeout(config('statamic.auto-alt-text.api_timeout', 30));
         $headers = ['Content-Type' => 'application/json'];
 
         if ($this->mode === 'cloud' && $this->apiKey) {

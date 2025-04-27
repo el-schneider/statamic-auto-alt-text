@@ -22,7 +22,7 @@ final class GenerateAltText
         $caption = $service->generateCaption($asset);
 
         if ($caption) {
-            $fieldName = $field ?? config('auto-alt-text.alt_text_field', 'alt');
+            $fieldName = $field ?? config('statamic.auto-alt-text.alt_text_field', 'alt');
             $asset->set($fieldName, $caption);
             $asset->save();
         }
@@ -36,7 +36,7 @@ final class GenerateAltText
     public function handleBatch(array $assets, ?string $field = null): array
     {
         $results = [];
-        $fieldName = $field ?? config('auto-alt-text.alt_text_field', 'alt');
+        $fieldName = $field ?? config('statamic.auto-alt-text.alt_text_field', 'alt');
         $service = $this->serviceFactory->make();
 
         $captions = $service->generateCaptions($assets);

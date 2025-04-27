@@ -48,7 +48,7 @@ final class GenerateAltTextController extends Controller
             ], 403);
         }
 
-        $field = $validated['field'] ?? config('auto-alt-text.alt_text_field', 'alt');
+        $field = $validated['field'] ?? config('statamic.auto-alt-text.alt_text_field', 'alt');
 
         try {
             // Always dispatch the job

@@ -59,7 +59,7 @@ final class GenerateAltTextAction extends Action
      */
     private function fieldHandle(): string
     {
-        return $this->context['field']['handle'] ?? config('auto-alt-text.alt_text_field', 'alt');
+        return $this->context['field']['handle'] ?? config('statamic.auto-alt-text.alt_text_field', 'alt');
     }
 
     // Optional: Define fields if the action needs configuration in bulk mode

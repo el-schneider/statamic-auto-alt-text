@@ -35,11 +35,15 @@ final class ServiceProvider extends AddonServiceProvider
         'cp' => __DIR__.'/../routes/cp.php',
     ];
 
-    public function register(): void
+    public function boot(): void
     {
-        parent::register();
+        parent::boot();
 
-        $this->mergeConfigFrom(__DIR__.'/../config/auto-alt-text.php', 'auto-alt-text');
+        $this->mergeConfigFrom(__DIR__.'/../config/auto-alt-text.php', 'statamic.auto-alt-text');
+
+        $this->publishes([
+            __DIR__.'/../config/auto-alt-text.php' => config_path('statamic/auto-alt-text.php'),
+        ], 'statamic-auto-alt-text-config');
 
         $this->app->singleton(CaptionServiceFactory::class);
         $this->app->bind(CaptionService::class, function ($app) {
@@ -52,26 +56,15 @@ final class ServiceProvider extends AddonServiceProvider
         });
 
         $this->app->alias('auto-alt-text', AutoAltTextFacade::class);
-    }
-
-    public function boot(): void
-    {
-        parent::boot();
 
         StatamicGenerateAltTextAction::register();
-
-        if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__.'/../config/auto-alt-text.php' => config_path('auto-alt-text.php'),
-            ], 'auto-alt-text-config');
-        }
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'auto-alt-text');
 
         // Provide config to the frontend
         Statamic::provideToScript([
             'autoAltText' => [
-                'enabledFields' => config('auto-alt-text.action_enabled_fields', ['alt', 'alt_text', 'alternative_text']),
+                'enabledFields' => config('statamic.auto-alt-text.action_enabled_fields', ['alt', 'alt_text', 'alternative_text']),
             ],
         ]);
     }

@@ -34,7 +34,7 @@ final class GenerateAltTextCommand extends Command
         $assetIdentifiers = $this->option('asset');
         $overwriteExisting = $this->option('overwrite-existing');
         $batchSize = max(1, (int) $this->option('batch')); // Ensure batch size is at least 1
-        $fieldName = $this->option('field') ?: config('auto-alt-text.alt_text_field', 'alt');
+        $fieldName = $this->option('field') ?: config('statamic.auto-alt-text.alt_text_field', 'alt');
 
         $assetsToProcess = $this->getAssetsToProcess($containerHandle, $assetIdentifiers, $overwriteExisting, $fieldName);
 
