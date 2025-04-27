@@ -56,7 +56,7 @@ final class GenerateAltTextController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => __('statamic-auto-alt-text::messages.generation_queued'), // Use the existing queued message
+                'message' => __('auto-alt-text::messages.generation_queued'), // Use the existing queued message
             ]);
 
         } catch (Exception $e) {
@@ -70,7 +70,7 @@ final class GenerateAltTextController extends Controller
             // Inform the user that queuing failed
             return response()->json([
                 'success' => false, // Indicate failure to queue
-                'message' => __('statamic-auto-alt-text::messages.generation_queue_failed'), // Consider adding a specific message
+                'message' => __('auto-alt-text::messages.generation_queue_failed'), // Consider adding a specific message
             ], 500);
         }
     }

@@ -14,7 +14,7 @@ final class GenerateAltTextAction extends Action
     public static function title(): string
     {
         // Using translation key for potential localization
-        return __('statamic-auto-alt-text::messages.generate_alt_text_action');
+        return __('auto-alt-text::messages.generate_alt_text_action');
     }
 
     /**
