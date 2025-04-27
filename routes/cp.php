@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 // Prefix matches the Statamic::script handle used in the Service Provider
 Route::name('statamic-auto-alt-text.')->prefix('statamic-auto-alt-text')->group(function () {
 
-    Route::post('generate', GenerateAltTextController::class)->name('generate');
+    Route::post('generate', [GenerateAltTextController::class, 'trigger'])->name('trigger');
+
+    Route::get('check', [GenerateAltTextController::class, 'check'])->name('check');
 
 });

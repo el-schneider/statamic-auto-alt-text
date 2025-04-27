@@ -63,22 +63,14 @@ final class ServiceProvider extends AddonServiceProvider
             ], 'auto-alt-text-config');
         }
 
-        if ($this->app->runningInConsole()) {
-            // Assets are published via Vite manifest, this might be redundant
-            // $this->publishes([
-            //     __DIR__.'/../resources/dist' => public_path('vendor/statamic-auto-alt-text'),
-            // ], 'auto-alt-text-assets');
-        }
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'statamic-auto-alt-text');
 
-        // JS registration handled by $vite property
-        // Statamic::script('statamic-auto-alt-text', 'addon');
-
-        // Load translations or other resources if needed
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'statamic-auto-alt-text');
-
-        // The spec mentions registering field actions via JS, so no PHP registration here.
-        // Statamic::afterInstalled(function () {
-        //    // Register field action using JS
-        // });
+        // Provide config to the frontend
+        Statamic::provideToScript([
+            'statamic-auto-alt-text' => [
+                'enabledFields' => config('auto-alt-text.action_enabled_fields', ['alt', 'alt_text', 'alternative_text']),
+                'actionTitle' => __('statamic-auto-alt-text::messages.generate_alt_text_action', [], config('app.locale', 'en')) ?: 'Generate Alt Text',
+            ],
+        ]);
     }
 }

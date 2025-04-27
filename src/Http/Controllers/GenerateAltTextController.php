@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace ElSchneider\StatamicAutoAltText\Http\Controllers;
 
-use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
-use ElSchneider\StatamicAutoAltText\Exceptions\CaptionGenerationException;
 use ElSchneider\StatamicAutoAltText\Jobs\GenerateAltTextJob;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -14,16 +12,19 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Statamic\Contracts\Assets\Asset as AssetContract;
+use Statamic\Contracts\Auth\User as UserContract;
 use Statamic\Facades\Asset;
 
 final class GenerateAltTextController extends Controller
 {
-    public function __invoke(Request $request, GenerateAltText $generateAltText): JsonResponse
+    /**
+     * Trigger the alt text generation job.
+     */
+    public function trigger(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'asset_path' => 'required|string',
             'field' => 'nullable|string',
-            // 'context' => 'required|array', // Context validation might be needed later
         ]);
 
         /** @var ?AssetContract $asset */
@@ -32,12 +33,14 @@ final class GenerateAltTextController extends Controller
         if (! $asset) {
             return response()->json([
                 'success' => false,
-                'message' => 'Asset not found by path: '.$validated['asset_path'],
+                'message' => 'Asset not found: '.$validated['asset_path'],
             ], 404);
         }
 
+        /** @var ?UserContract $user */
         $user = Auth::user();
-        // Use 'can' for authorization check
+
+        // Ensure user exists and can update the asset
         if (! $user || ! $user->can('update', $asset)) {
             return response()->json([
                 'success' => false,
@@ -48,39 +51,60 @@ final class GenerateAltTextController extends Controller
         $field = $validated['field'] ?? config('auto-alt-text.alt_text_field', 'alt');
 
         try {
-            $caption = $generateAltText->handle($asset, $field);
-
-            if ($caption) {
-                return response()->json([
-                    'success' => true,
-                    'message' => __('statamic-auto-alt-text::messages.generation_success'),
-                    'caption' => $caption,
-                ]);
-            }
-
+            // Always dispatch the job
             GenerateAltTextJob::dispatch($asset, $field);
 
             return response()->json([
                 'success' => true,
-                'message' => __('statamic-auto-alt-text::messages.generation_queued'),
+                'message' => __('statamic-auto-alt-text::messages.generation_queued'), // Use the existing queued message
             ]);
 
-        } catch (CaptionGenerationException $e) {
-            Log::error("CP Alt Text Generation Error: {$e->getMessage()}", ['asset_path' => $asset->path()]);
-            GenerateAltTextJob::dispatch($asset, $field);
-
-            return response()->json([
-                'success' => true, // Still technically successful from user perspective (queued)
-                'message' => __('statamic-auto-alt-text::messages.generation_queued_error'),
-            ]);
         } catch (Exception $e) {
-            Log::error("Unexpected CP Alt Text Generation Error: {$e->getMessage()}", ['asset_path' => $asset->path()]);
-            GenerateAltTextJob::dispatch($asset, $field);
+            // Log unexpected errors during dispatching
+            Log::error("Unexpected CP Alt Text Job Dispatch Error: {$e->getMessage()}", [
+                'asset_id' => $asset->id(), // Use id() which is definitely available
+                'field' => $field,
+                'exception' => $e,
+            ]);
 
+            // Inform the user that queuing failed
             return response()->json([
-                'success' => true,
-                'message' => __('statamic-auto-alt-text::messages.generation_queued_error'),
+                'success' => false, // Indicate failure to queue
+                'message' => __('statamic-auto-alt-text::messages.generation_queue_failed'), // Consider adding a specific message
+            ], 500);
+        }
+    }
+
+    /**
+     * Check if the alt text has been generated for an asset field.
+     */
+    public function check(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'asset_path' => 'required|string',
+            'field' => 'required|string',
+        ]);
+
+        /** @var ?AssetContract $asset */
+        $asset = Asset::findById($validated['asset_path']);
+
+        if (! $asset) {
+            return response()->json(['status' => 'not_found', 'message' => 'Asset not found.'], 404);
+        }
+
+        // No need to re-check permissions here, assume the initial trigger was authorized.
+        // Fetch the *latest* data for the asset
+        // $asset = $asset->fresh();
+        $altText = $asset->get($validated['field']);
+
+        if (! empty($altText) && is_string($altText)) {
+            return response()->json([
+                'status' => 'ready',
+                'caption' => $altText,
             ]);
         }
+
+        return response()->json(['status' => 'pending']);
+
     }
 }
