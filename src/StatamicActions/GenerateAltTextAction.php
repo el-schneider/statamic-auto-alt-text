@@ -11,18 +11,16 @@ use Statamic\Facades\User;
 
 final class GenerateAltTextAction extends Action
 {
-    private StatamicAutoAltText $autoAltText; // Inject main addon class
-
-    // Inject the service via constructor
-    public function __construct(StatamicAutoAltText $autoAltText)
-    {
-        $this->autoAltText = $autoAltText;
-        parent::__construct(); // Call parent constructor if extending a class that has one
+    // Use constructor property promotion
+    public function __construct(
+        private readonly StatamicAutoAltText $autoAltText
+    ) {
+        parent::__construct();
     }
 
     public static function title()
     {
-        return __('Generate Alt Text (Queued)'); // Indicate queuing
+        return __('Generate Alt Text (Queued)');
     }
 
     public function visibleTo($item)

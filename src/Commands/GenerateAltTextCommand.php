@@ -8,6 +8,7 @@ use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Statamic\Assets\AssetCollection;
 use Statamic\Contracts\Assets\Asset as AssetContract;
 use Statamic\Facades\Asset;
@@ -61,12 +62,11 @@ final class GenerateAltTextCommand extends Command
                 if ($caption !== null) {
                     $successCount++;
                 } else {
-                    // Consider it a failure if no caption was generated (e.g., unsupported type handled inside handle)
-                    // Or if the service itself failed and returned null
+                    // Caption generation failed or asset type was unsupported.
                     $failCount++;
                 }
             } catch (Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to generate alt text for asset {$asset->id()}: {$e->getMessage()}");
+                Log::error("Failed to generate alt text for asset {$asset->id()}: {$e->getMessage()}");
                 $failCount++;
             }
 
@@ -109,9 +109,8 @@ final class GenerateAltTextCommand extends Command
             if (! $container) {
                 $this->error("Asset container '{$containerHandle}' not found.");
 
-                return new AssetCollection(); // Return empty collection
+                return new AssetCollection();
             }
-            // Query assets within the specified container
             $assets = Asset::query()->where('container', $container->handle())->get();
         }
         // If no specific assets or container specified, process all containers

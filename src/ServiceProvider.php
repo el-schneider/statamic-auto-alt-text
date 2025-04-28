@@ -63,14 +63,12 @@ final class ServiceProvider extends AddonServiceProvider
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'auto-alt-text');
 
-        // Provide config to the frontend
         Statamic::provideToScript([
             'autoAltText' => [
                 'enabledFields' => config('statamic.auto-alt-text.action_enabled_fields', ['alt', 'alt_text', 'alternative_text']),
             ],
         ]);
 
-        // Register event listener based on configuration
         $this->registerEventListeners();
     }
 
@@ -82,7 +80,7 @@ final class ServiceProvider extends AddonServiceProvider
         $eventsToListen = config('statamic.auto-alt-text.automatic_generation_events', []);
 
         if (! is_array($eventsToListen)) {
-            // Log or handle potential misconfiguration
+            // Consider logging or handling potential misconfiguration here
             return;
         }
 
@@ -90,7 +88,7 @@ final class ServiceProvider extends AddonServiceProvider
             if (class_exists($eventClass)) {
                 Event::listen($eventClass, HandleAssetEvent::class);
             }
-            // Log or warn about invalid event class in config
+            // Consider logging or warning about invalid event classes in config here
 
         }
     }

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace ElSchneider\StatamicAutoAltText\Listeners;
 
 use ElSchneider\StatamicAutoAltText\StatamicAutoAltText;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 use Statamic\Assets\Asset;
 
-final class HandleAssetEvent // Optionally implements ShouldQueue if listening itself should be queued
+final class HandleAssetEvent
 {
     public function __construct(
-        private readonly StatamicAutoAltText $autoAltText // Inject the main addon class
+        private readonly StatamicAutoAltText $autoAltText
     ) {}
 
     /**
@@ -30,7 +30,8 @@ final class HandleAssetEvent // Optionally implements ShouldQueue if listening i
 
         $asset = $this->getAssetFromEvent($event);
         if (! $asset) {
-            // Could log an error here if needed
+            Log::warning("Asset not found in event: {$eventClass}");
+
             return;
         }
 

@@ -20,10 +20,7 @@ final class GenerateAltTextJob implements ShouldQueue
         private readonly Asset $asset,
         private readonly ?string $field = null,
         private readonly bool $saveQuietly = false
-    ) {
-        // Automatically set queue if needed
-        // $this->onQueue('alt-text-generation');
-    }
+    ) {}
 
     public function handle(GenerateAltText $generateAltText): void
     {
