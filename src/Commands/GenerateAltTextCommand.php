@@ -6,6 +6,7 @@ namespace ElSchneider\StatamicAutoAltText\Commands;
 
 use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
+use Exception;
 use Illuminate\Console\Command;
 use Statamic\Assets\AssetCollection;
 use Statamic\Contracts\Assets\Asset as AssetContract;
@@ -18,7 +19,6 @@ final class GenerateAltTextCommand extends Command
                             {container? : The asset container handle to process}
                             {--asset=* : Specific asset IDs or paths to process}
                             {--overwrite-existing : Overwrite existing alt text}
-                            {--batch=50 : Number of assets to process in each batch}
                             {--field= : The field to save alt text to (defaults to config)}';
 
     protected $description = 'Generate alt text for image assets';
@@ -35,7 +35,6 @@ final class GenerateAltTextCommand extends Command
         $containerHandle = $this->argument('container');
         $assetIdentifiers = $this->option('asset');
         $overwriteExisting = $this->option('overwrite-existing');
-        $batchSize = max(1, (int) $this->option('batch')); // Ensure batch size is at least 1
         $fieldName = $this->option('field') ?: config('statamic.auto-alt-text.alt_text_field', 'alt');
 
         $assetsToProcess = $this->getAssetsToProcess($containerHandle, $assetIdentifiers, $overwriteExisting, $fieldName);
@@ -52,22 +51,26 @@ final class GenerateAltTextCommand extends Command
         $progressBar = $this->output->createProgressBar($totalAssets);
         $progressBar->start();
 
-        $batches = $assetsToProcess->chunk($batchSize);
         $successCount = 0;
         $failCount = 0;
 
-        foreach ($batches as $batch) {
-            // Pass batch items as an array to handleBatch
-            $results = $this->generateAltText->handleBatch($batch->all(), $fieldName);
+        foreach ($assetsToProcess as $asset) {
+            try {
+                $caption = $this->generateAltText->handle($asset, $fieldName);
 
-            foreach ($batch as $asset) {
-                if (isset($results[$asset->id()]) && $results[$asset->id()] !== null) {
+                if ($caption !== null) {
                     $successCount++;
                 } else {
+                    // Consider it a failure if no caption was generated (e.g., unsupported type handled inside handle)
+                    // Or if the service itself failed and returned null
                     $failCount++;
                 }
-                $progressBar->advance();
+            } catch (Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to generate alt text for asset {$asset->id()}: {$e->getMessage()}");
+                $failCount++;
             }
+
+            $progressBar->advance();
         }
 
         $progressBar->finish();
