@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ElSchneider\StatamicAutoAltText;
 
 use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
+use ElSchneider\StatamicAutoAltText\Jobs\GenerateAltTextJob;
 use Statamic\Assets\Asset;
 
 final class StatamicAutoAltText
@@ -14,7 +15,7 @@ final class StatamicAutoAltText
     ) {}
 
     /**
-     * Generate caption for a single asset
+     * Generate caption for a single asset (synchronously)
      */
     public function generateCaption(Asset $asset, ?string $field = null): ?string
     {
@@ -22,10 +23,18 @@ final class StatamicAutoAltText
     }
 
     /**
-     * Generate captions for multiple assets
+     * Dispatch a job to generate alt text for an asset using configured queue settings.
+     *
+     * @param  bool  $saveQuietly  Whether the job should save the asset without triggering events.
      */
-    public function generateCaptions(array $assets, ?string $field = null): array
+    public function dispatchGenerationJob(Asset $asset, bool $saveQuietly = false): void
     {
-        return $this->generateAltText->handleBatch($assets, $field);
+        $queueConfig = config('statamic.auto-alt-text.queue', []);
+        $queueConnection = $queueConfig['connection'] ?? null;
+        $queueName = $queueConfig['name'] ?? null;
+
+        GenerateAltTextJob::dispatch($asset, null, $saveQuietly)
+            ->onConnection($queueConnection)
+            ->onQueue($queueName);
     }
 }

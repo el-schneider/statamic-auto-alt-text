@@ -8,9 +8,11 @@ use ElSchneider\StatamicAutoAltText\Commands\GenerateAltTextCommand;
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Facades\AutoAltText as AutoAltTextFacade;
 use ElSchneider\StatamicAutoAltText\FieldActions\GenerateAltTextAction;
+use ElSchneider\StatamicAutoAltText\Listeners\HandleAssetEvent;
 use ElSchneider\StatamicAutoAltText\Services\CaptionServiceFactory;
 use ElSchneider\StatamicAutoAltText\Services\MoondreamService;
 use ElSchneider\StatamicAutoAltText\StatamicActions\GenerateAltTextAction as StatamicGenerateAltTextAction;
+use Illuminate\Support\Facades\Event;
 use Statamic\Providers\AddonServiceProvider;
 use Statamic\Statamic;
 
@@ -67,5 +69,29 @@ final class ServiceProvider extends AddonServiceProvider
                 'enabledFields' => config('statamic.auto-alt-text.action_enabled_fields', ['alt', 'alt_text', 'alternative_text']),
             ],
         ]);
+
+        // Register event listener based on configuration
+        $this->registerEventListeners();
+    }
+
+    /**
+     * Register event listeners based on configuration.
+     */
+    private function registerEventListeners(): void
+    {
+        $eventsToListen = config('statamic.auto-alt-text.automatic_generation_events', []);
+
+        if (! is_array($eventsToListen)) {
+            // Log or handle potential misconfiguration
+            return;
+        }
+
+        foreach ($eventsToListen as $eventClass) {
+            if (class_exists($eventClass)) {
+                Event::listen($eventClass, HandleAssetEvent::class);
+            }
+            // Log or warn about invalid event class in config
+
+        }
     }
 }

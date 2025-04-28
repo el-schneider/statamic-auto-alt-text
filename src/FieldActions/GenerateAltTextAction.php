@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ElSchneider\StatamicAutoAltText\FieldActions;
 
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
-use ElSchneider\StatamicAutoAltText\Jobs\GenerateAltTextJob;
+use ElSchneider\StatamicAutoAltText\StatamicAutoAltText;
 use Statamic\Actions\Action;
 use Statamic\Contracts\Assets\Asset as AssetContract;
 use Statamic\Facades\Asset;
@@ -14,9 +14,12 @@ final class GenerateAltTextAction extends Action
 {
     private CaptionService $captionService;
 
-    public function __construct(CaptionService $captionService)
+    private StatamicAutoAltText $autoAltText; // Inject main addon class
+
+    public function __construct(CaptionService $captionService, StatamicAutoAltText $autoAltText)
     {
         $this->captionService = $captionService;
+        $this->autoAltText = $autoAltText;
         parent::__construct();
     }
 
@@ -27,17 +30,19 @@ final class GenerateAltTextAction extends Action
     }
 
     /**
-     * The run method is primarily meant for bulk actions.
-     * Individual field actions are often handled via HTTP endpoints triggered by JS.
-     * This run method dispatches the job, mirroring the endpoint logic for consistency,
-     * but might not be directly invoked by the default JS implementation in the spec.
+     * Run the action for the given items.
+     * This now dispatches a job using the centralized helper.
      */
     public function run($items, $values): void
     {
+        $fieldName = $this->fieldHandle();
+
         foreach ($items as $item) {
             $asset = Asset::find($item);
+            // Pass field name to the job if necessary, though the job currently doesn't use it.
+            // If the job needs the field name, the helper and job must be updated.
             if ($asset) {
-                GenerateAltTextJob::dispatch($asset, $this->fieldHandle());
+                $this->autoAltText->dispatchGenerationJob($asset);
             }
         }
     }

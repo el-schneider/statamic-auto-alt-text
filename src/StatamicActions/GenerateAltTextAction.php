@@ -4,16 +4,25 @@ declare(strict_types=1);
 
 namespace ElSchneider\StatamicAutoAltText\StatamicActions;
 
-use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
+use ElSchneider\StatamicAutoAltText\StatamicAutoAltText;
 use Statamic\Actions\Action;
 use Statamic\Contracts\Assets\Asset;
 use Statamic\Facades\User;
 
 final class GenerateAltTextAction extends Action
 {
+    private StatamicAutoAltText $autoAltText; // Inject main addon class
+
+    // Inject the service via constructor
+    public function __construct(StatamicAutoAltText $autoAltText)
+    {
+        $this->autoAltText = $autoAltText;
+        parent::__construct(); // Call parent constructor if extending a class that has one
+    }
+
     public static function title()
     {
-        return __('Generate Alt Text');
+        return __('Generate Alt Text (Queued)'); // Indicate queuing
     }
 
     public function visibleTo($item)
@@ -27,38 +36,23 @@ final class GenerateAltTextAction extends Action
         return $user->can('update', $item);
     }
 
+    /**
+     * Run the action by dispatching jobs for each item.
+     */
     public function run($items, $values)
     {
-        $generateAltTextAction = app(GenerateAltText::class);
         $count = $items->count();
 
         if ($count === 0) {
             return __('No items selected.');
         }
 
-        if ($count === 1) {
-            $asset = $items->first();
-            $caption = $generateAltTextAction->handle($asset);
-
-            return $caption
-                ? __('Alt text generated successfully for 1 item.')
-                : __('Failed to generate alt text for the item.');
-        }
-        // Convert the Statamic Collection to an array of Assets for handleBatch
-        $assetsArray = $items->all();
-        $results = $generateAltTextAction->handleBatch($assetsArray);
-
-        $successCount = count(array_filter($results)); // Count non-null results
-        $failCount = $count - $successCount;
-
-        if ($failCount === 0) {
-            return trans_choice('Alt text generated successfully for :count items.', $successCount);
-        }
-        if ($successCount === 0) {
-            return trans_choice('Failed to generate alt text for :count items.', $failCount);
+        foreach ($items as $item) {
+            if ($item instanceof Asset) {
+                $this->autoAltText->dispatchGenerationJob($item);
+            }
         }
 
-        return __('Generated alt text for :success items, failed for :fail items.', ['success' => $successCount, 'fail' => $failCount]);
-
+        return trans_choice('Queued alt text generation for :count item(s).', $count);
     }
 }

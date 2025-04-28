@@ -18,7 +18,8 @@ final class GenerateAltTextJob implements ShouldQueue
 
     public function __construct(
         private readonly Asset $asset,
-        private readonly ?string $field = null
+        private readonly ?string $field = null,
+        private readonly bool $saveQuietly = false
     ) {
         // Automatically set queue if needed
         // $this->onQueue('alt-text-generation');
@@ -26,6 +27,6 @@ final class GenerateAltTextJob implements ShouldQueue
 
     public function handle(GenerateAltText $generateAltText): void
     {
-        $generateAltText->handle($this->asset, $this->field);
+        $generateAltText->handle($this->asset, $this->field, $this->saveQuietly);
     }
 }

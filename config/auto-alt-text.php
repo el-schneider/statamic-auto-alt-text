@@ -101,4 +101,57 @@ return [
     |
     */
     'max_dimension_pixels' => env('AUTO_ALT_TEXT_MAX_DIMENSION', 1920), // Default to 1920px
+
+    /*
+    |--------------------------------------------------------------------------
+    | Caption Service
+    |--------------------------------------------------------------------------
+    |
+    | Configure the caption generation service. Currently, only 'moondream'
+    | is supported. You can specify the API endpoint for the service.
+    |
+    */
+    'caption_service' => [
+        'driver' => env('AUTO_ALT_TEXT_DRIVER', 'moondream'),
+
+        'moondream' => [
+            'endpoint' => env('MOONDREAM_ENDPOINT'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Automatic Generation Events
+    |--------------------------------------------------------------------------
+    |
+    | Specify the fully qualified class names of Statamic asset events that
+    | should trigger automatic alt text generation if the alt text field
+    | is empty.
+    |
+    | Supported events (examples):
+    | - \Statamic\Events\AssetUploaded::class
+    | - \Statamic\Events\AssetSaving::class // Fired before asset is saved
+    |
+    | Leave empty to disable automatic generation on events.
+    |
+    */
+    'automatic_generation_events' => [
+        Statamic\Events\AssetUploaded::class,
+        Statamic\Events\AssetSaving::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queue Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the queue connection and name for background jobs dispatched
+    | by this addon (e.g., automatic generation, bulk generation).
+    | Defaults are taken from your application's default queue settings.
+    |
+    */
+    'queue' => [
+        'connection' => env('AUTO_ALT_TEXT_QUEUE_CONNECTION', config('queue.default')),
+        'name' => env('AUTO_ALT_TEXT_QUEUE_NAME', config('queue.connections.'.config('queue.default').'.queue', 'default')),
+    ],
 ];
