@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ElSchneider\StatamicAutoAltText\FieldActions;
 
+use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Jobs\GenerateAltTextJob;
 use Statamic\Actions\Action;
 use Statamic\Contracts\Assets\Asset as AssetContract;
@@ -11,6 +12,14 @@ use Statamic\Facades\Asset;
 
 final class GenerateAltTextAction extends Action
 {
+    private CaptionService $captionService;
+
+    public function __construct(CaptionService $captionService)
+    {
+        $this->captionService = $captionService;
+        parent::__construct();
+    }
+
     public static function title(): string
     {
         // Using translation key for potential localization
@@ -50,8 +59,8 @@ final class GenerateAltTextAction extends Action
             return false;
         }
 
-        // Only show for image assets in bulk context
-        return str_starts_with($item->mimeType() ?? '', 'image/');
+        // Only show for supported image assets based on the configured service
+        return $this->captionService->supportsAssetType($item);
     }
 
     /**

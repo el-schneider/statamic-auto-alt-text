@@ -26,4 +26,12 @@ interface CaptionService
      * @return array<string, string|null> Asset IDs mapped to their captions (null for failures)
      */
     public function generateCaptions(array $assets): array;
+
+    /**
+     * Check if the service supports generating a caption for the given asset type.
+     *
+     * @param  Asset  $asset  The asset to check.
+     * @return bool True if the asset type is supported, false otherwise.
+     */
+    public function supportsAssetType(Asset $asset): bool;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ElSchneider\StatamicAutoAltText\Commands;
 
 use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
+use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use Illuminate\Console\Command;
 use Statamic\Assets\AssetCollection;
 use Statamic\Contracts\Assets\Asset as AssetContract;
@@ -23,7 +24,8 @@ final class GenerateAltTextCommand extends Command
     protected $description = 'Generate alt text for image assets';
 
     public function __construct(
-        private readonly GenerateAltText $generateAltText
+        private readonly GenerateAltText $generateAltText,
+        private readonly CaptionService $captionService
     ) {
         parent::__construct();
     }
@@ -121,8 +123,8 @@ final class GenerateAltTextCommand extends Command
 
         // Filter the collected assets
         return $assets->filter(function (AssetContract $asset) use ($overwriteExisting, $fieldName) {
-            // Only process image assets
-            if (! str_starts_with($asset->mimeType() ?? '', 'image/')) {
+            // Only process supported image assets based on the configured service
+            if (! $this->captionService->supportsAssetType($asset)) {
                 return false;
             }
 

@@ -46,7 +46,9 @@ final class MoondreamService implements CaptionService
 
     public function generateCaption(Asset $asset): ?string
     {
-        if (! $this->isImageAsset($asset)) {
+        if (! $this->supportsAssetType($asset)) {
+            Log::warning("Asset type not supported for caption generation: {$asset->path()}");
+
             return null;
         }
 
@@ -106,9 +108,21 @@ final class MoondreamService implements CaptionService
         return $results;
     }
 
-    private function isImageAsset(Asset $asset): bool
+    /**
+     * Check if the service supports generating a caption for the given asset type.
+     * Currently excludes SVGs due to processing limitations.
+     */
+    public function supportsAssetType(Asset $asset): bool
     {
-        return Str::startsWith($asset->mimeType() ?? '', 'image/');
+        $mimeType = $asset->mimeType() ?? '';
+
+        // SVGs are currently excluded as they may not be easily processed by GD
+        if ($mimeType === 'image/svg+xml') {
+            return false;
+        }
+
+        // Check if the mime type starts with 'image/' for other types
+        return Str::startsWith($mimeType, 'image/');
     }
 
     /**
