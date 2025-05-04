@@ -12,7 +12,7 @@ return [
     | Currently supported: 'moondream'
     |
     */
-    'service' => 'openai',
+    'service' => 'moondream',
 
     /*
     |--------------------------------------------------------------------------
