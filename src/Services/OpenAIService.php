@@ -125,6 +125,6 @@ final class OpenAIService implements CaptionService
 
     public function supportsAssetType(Asset $asset): bool
     {
-        return $asset->extensionIsOneOf(['png', 'jpeg', 'gif', 'webp']);
+        return $asset->extensionIsOneOf(['png', 'jpeg', 'jpg', 'gif', 'webp']);
     }
 }
