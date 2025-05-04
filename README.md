@@ -2,8 +2,8 @@
 
 # Statamic Auto Alt Text
 
-<p align="center">
-  <img src="images/md_logo.svg" alt="Moondream Logo" width="50" style="margin-right: 15px;" />
+<p style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+  <img src="images/md_logo.svg" alt="Moondream Logo" width="50" />
   <img src="images/openai_logo.svg" alt="OpenAI Logo" width="100" />
 </p>
 
