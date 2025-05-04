@@ -14,12 +14,14 @@ final class CaptionServiceFactory
         private readonly Container $container
     ) {}
 
-    public function make(): CaptionService
+    public function make(?string $serviceName = null): CaptionService
     {
-        $service = config('statamic.auto-alt-text.service', 'moondream');
+        $service = $serviceName ?? config('statamic.auto-alt-text.service', 'moondream');
+        $config = config("statamic.auto-alt-text.services.{$service}");
 
         return match ($service) {
-            'moondream' => $this->container->make(MoondreamService::class),
+            'moondream' => $this->container->make(MoondreamService::class, ['config' => $config]),
+            'openai' => $this->container->make(OpenAIService::class, ['config' => $config]),
             default => throw new InvalidArgumentException("Unsupported caption service: {$service}"),
         };
     }

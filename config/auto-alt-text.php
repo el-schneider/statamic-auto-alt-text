@@ -12,7 +12,7 @@ return [
     | Currently supported: 'moondream'
     |
     */
-    'service' => 'moondream',
+    'service' => 'openai',
 
     /*
     |--------------------------------------------------------------------------
@@ -45,6 +45,13 @@ return [
                     'stream' => false,
                 ],
             ],
+        ],
+        'openai' => [
+            'api_key' => env('OPENAI_API_KEY'),
+            'model' => env('OPENAI_MODEL', 'gpt-4-turbo'), // Or 'gpt-4o' or other vision models
+            'endpoint' => env('OPENAI_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
+            'prompt' => env('OPENAI_PROMPT', 'Describe this image concisely for accessibility alt text.'),
+            'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 100),
         ],
         // Add other services here in the future
         // 'another_service' => [...],

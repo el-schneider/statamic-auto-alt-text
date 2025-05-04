@@ -9,7 +9,6 @@ use Statamic\Assets\Asset;
 
 /**
  * @method static string|null generateCaption(Asset $asset, ?string $field = null)
- * @method static array generateCaptions(array $assets, ?string $field = null)
  *
  * @see \ElSchneider\StatamicAutoAltText\StatamicAutoAltText
  */

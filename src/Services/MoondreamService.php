@@ -19,28 +19,41 @@ use Statamic\Facades\Image;
 
 final class MoondreamService implements CaptionService
 {
+    private HttpClient $httpClient;
+
     private string $mode;
 
     private string $endpoint;
 
     private ?string $apiKey;
 
-    private HttpClient $httpClient;
+    private array $options;
 
     private ?int $maxDimensionPixels;
 
-    public function __construct(HttpClient $httpClient)
+    public function __construct(HttpClient $httpClient, array $config)
     {
         $this->httpClient = $httpClient;
-        $this->mode = config('statamic.auto-alt-text.services.moondream.mode', 'cloud');
-        $this->maxDimensionPixels = config('statamic.auto-alt-text.max_dimension_pixels');
+        $this->mode = $config['mode'] ?? 'cloud';
+        $this->maxDimensionPixels = config('statamic.auto-alt-text.max_dimension_pixels'); // Keep this global config for now
 
         if ($this->mode === 'cloud') {
-            $this->endpoint = config('statamic.auto-alt-text.services.moondream.cloud.endpoint');
-            $this->apiKey = config('statamic.auto-alt-text.services.moondream.cloud.api_key');
-        } else {
-            $this->endpoint = config('statamic.auto-alt-text.services.moondream.local.endpoint');
-            $this->apiKey = null;
+            $this->endpoint = $config['cloud']['endpoint'] ?? '';
+            $this->apiKey = $config['cloud']['api_key'] ?? null;
+            $this->options = $config['cloud']['options'] ?? [];
+        } else { // local mode
+            $this->endpoint = $config['local']['endpoint'] ?? '';
+            $this->apiKey = null; // No API key for local mode
+            $this->options = $config['local']['options'] ?? [];
+        }
+
+        if (empty($this->endpoint)) {
+            Log::error("Moondream endpoint is not configured for '{$this->mode}' mode.");
+            // Potentially throw an exception
+        }
+        if ($this->mode === 'cloud' && empty($this->apiKey)) {
+            Log::error('Moondream API key is not configured for cloud mode.');
+            // Potentially throw an exception
         }
     }
 
@@ -86,26 +99,6 @@ final class MoondreamService implements CaptionService
 
             return null;
         }
-    }
-
-    public function generateCaptions(array $assets): array
-    {
-        $results = [];
-
-        foreach ($assets as $asset) {
-            try {
-                $results[$asset->id()] = $this->generateCaption($asset);
-            } catch (Exception $e) {
-                $results[$asset->id()] = null;
-
-                if (config('statamic.auto-alt-text.log_completions', true)) {
-                    Log::error("Error in batch caption generation for {$asset->path()}: {$e->getMessage()}");
-                }
-                // Continue processing other assets in the batch
-            }
-        }
-
-        return $results;
     }
 
     /**
@@ -206,12 +199,11 @@ final class MoondreamService implements CaptionService
             $headers['X-Moondream-Auth'] = $this->apiKey;
         }
 
-        $response = $client->withHeaders($headers)
-            ->post($this->endpoint, [
-                'image_url' => $base64Image,
-                'length' => config('statamic.auto-alt-text.services.moondream.cloud.options.length'),
-                'stream' => config('statamic.auto-alt-text.services.moondream.cloud.options.stream'),
-            ]);
+        $payload = [
+            'image_url' => $base64Image,
+        ] + $this->options;
+
+        $response = $client->withHeaders($headers)->post($this->endpoint, $payload);
 
         if ($response->failed()) {
             throw new CaptionGenerationException(
