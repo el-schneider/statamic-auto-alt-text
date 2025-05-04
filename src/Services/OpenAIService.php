@@ -102,7 +102,7 @@ final class OpenAIService implements CaptionService
             }
 
             // Clean up the caption (remove quotes, trim whitespace)
-            $caption = trim($caption, " \\n\\r\\t\\v\\x00\"'");
+            $caption = mb_trim($caption, " \\n\\r\\t\\v\\x00\"'");
 
             if (config('statamic.auto-alt-text.log_completions', false)) {
                 Log::info("OpenAI Service: Generated caption for asset {$asset->id()}: {$caption}");
