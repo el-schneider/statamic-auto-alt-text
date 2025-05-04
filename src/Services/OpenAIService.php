@@ -56,11 +56,10 @@ final class OpenAIService implements CaptionService
         Event::dispatch(new BeforeCaptionGeneration($asset));
 
         try {
-            // $imageUrl = $asset->absoluteUrl();
-            $imageUrl = 'https://d12e-2001-16b8-9049-2a00-30cb-74cb-3406-a292.ngrok-free.app'.$asset->url();
+            $imageUrl = $asset->absoluteUrl();
 
             $response = $this->http->withToken($this->apiKey)
-                ->timeout(60) // Set a reasonable timeout
+                ->timeout(60)
                 ->post($this->endpoint, [
                     'model' => $this->model,
                     'messages' => [
@@ -109,10 +108,6 @@ final class OpenAIService implements CaptionService
                 Log::info("OpenAI Service: Generated caption for asset {$asset->id()}: {$caption}");
             }
 
-            // Update the asset immediately (optional, might be handled elsewhere)
-            // $asset->set($this->altTextField, $caption);
-            // $asset->save();
-
             Event::dispatch(new AfterCaptionGeneration($asset, $caption));
 
             return $caption;
@@ -120,11 +115,10 @@ final class OpenAIService implements CaptionService
         } catch (Throwable $e) {
             Log::error('Error generating caption with OpenAI.', [
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(), // Consider logging trace only in debug mode
+                'trace' => $e->getTraceAsString(),
                 'asset_id' => $asset->id(),
             ]);
 
-            // Re-throw as a specific exception type if needed, or handle differently
             throw new CaptionGenerationException("Failed to generate caption for asset {$asset->id()}: {$e->getMessage()}", 0, $e);
         }
     }
