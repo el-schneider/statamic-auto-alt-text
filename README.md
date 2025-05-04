@@ -1,4 +1,4 @@
-![Auto Alt Text](images/aat_banner.png)
+<img src="images/aat_banner.png" alt="Auto Alt Text" width="400">
 
 # Statamic Auto Alt Text
 
