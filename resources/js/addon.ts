@@ -11,7 +11,6 @@ declare global {
         booting: (callback: () => void) => void
     }
 
-    // Declare Statamic's translation function
     function __(key: string, params?: Record<string, string | number>): string
 }
 
@@ -22,24 +21,23 @@ const STATUS_NOT_FOUND = 'not_found'
 const STATUS_ERROR = 'error'
 
 // Polling configuration
-const POLLING_INTERVAL_MS = 1000 // Poll every 1 second
-const MAX_POLLING_ATTEMPTS = 15 // Max attempts (e.g., 15 seconds)
+const POLLING_INTERVAL_MS = 1000
+const MAX_POLLING_ATTEMPTS = 15
 
-// Define types for better clarity and maintainability
 interface FieldActionContext {
     handle: string
-    meta: Record<string, any> // Consider refining if meta structure is known
+    meta: Record<string, any>
 }
 
 interface RunActionParams extends FieldActionContext {
     event: MouseEvent
-    field: any // Keep as 'any' if structure is highly variable, otherwise define a type
+    field: any
     value: any
-    meta: Record<string, any> & { asset?: any } // More specific meta type
+    meta: Record<string, any> & { asset?: any }
     store: any // Vuex store instance
     storeName: string
     update: (newValue: any) => void
-    vm?: any // Added vm parameter
+    vm?: any
 }
 
 interface TriggerAltTextResponse {
@@ -59,13 +57,12 @@ function isAssetContextByURL(pathname: string): boolean {
 }
 
 // Helper function to extract asset path (container::path) from URL
-function extractAssetPathFromURL(pathname: string): string | null {
+function extractAssetIdFromURL(pathname: string): string | null {
     // Matches an URL like /cp/assets/browse/{container}/{path}/edit
     const pathRegex = /^\/cp\/assets\/browse\/([^/]+)\/(.+?)(?:\/edit)?$/
     const match = pathname.match(pathRegex)
 
     if (match && match[1] && match[2]) {
-        // Combine container (match[1]) and path (match[2]) with '::'
         return `${match[1]}::${match[2]}`
     }
     console.error('Could not determine Asset Container and Path from URL pattern:', pathname)
@@ -83,7 +80,6 @@ async function triggerAltTextGeneration(assetPath: string, fieldHandle: string):
     } catch (error: any) {
         console.error('Alt text trigger request error:', error)
         const errorMessage = error.response?.data?.message || error.message || 'Error communicating with server.'
-        // Return a failure response
         return { success: false, message: errorMessage }
     }
 }
@@ -107,21 +103,21 @@ async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promi
 
 // UI State Management Helpers
 function disableInteraction(vm: any): () => void {
-    // TODO: Add a visual loading indicator class to the field wrapper (vm.$el?)
     const inputElement = vm?.$el?.querySelector('input, textarea') as HTMLInputElement | HTMLTextAreaElement | null
 
     if (!inputElement) {
         console.warn('Could not find input element to disable interaction.')
-        return () => {} // Return a no-op cleanup if no element found
+        return () => {}
     }
 
-    const originalReadOnlyState = inputElement.readOnly ?? false // Store original state
+    const originalReadOnlyState = inputElement.readOnly ?? false
     inputElement.readOnly = true
 
     // Return the cleanup function
     return () => {
         if (inputElement) {
-            inputElement.readOnly = originalReadOnlyState // Restore original state
+            // Restore original state
+            inputElement.readOnly = originalReadOnlyState
         }
     }
 }
@@ -139,8 +135,8 @@ async function pollForAltText(
         console.log(`Polling attempt ${pollingAttempts} for ${assetPath}...`)
 
         if (pollingAttempts > MAX_POLLING_ATTEMPTS) {
-            clearInterval(pollingIntervalId) // Stop this interval first
-            cleanupCallback() // Then run the general cleanup
+            clearInterval(pollingIntervalId)
+            cleanupCallback()
             console.error('Polling timeout exceeded for asset:', assetPath)
             Statamic.$toast.error(__('auto-alt-text::messages.timeout'))
             return
@@ -200,7 +196,7 @@ Statamic.booting(() => {
 
             try {
                 const currentPath = window.location.pathname
-                const assetPath = extractAssetPathFromURL(currentPath)
+                const assetPath = extractAssetIdFromURL(currentPath)
 
                 if (!assetPath) {
                     Statamic.$toast.error(__('auto-alt-text::messages.cannot_determine_asset_path'))
@@ -228,7 +224,7 @@ Statamic.booting(() => {
                 // Start polling only on successful trigger
                 await pollForAltText(assetPath, handle, update, enableInteraction)
             } catch (error: any) {
-                // Catches errors primarily from extractAssetPathFromURL or unexpected issues
+                // Catches errors primarily from extractAssetIdFromURL or unexpected issues
                 console.error('Error during alt text generation action setup:', error)
                 Statamic.$toast.error(error.message || __('auto-alt-text::messages.unexpected_error'))
                 enableInteraction() // Ensure UI is re-enabled on setup error
@@ -238,6 +234,3 @@ Statamic.booting(() => {
 
     console.log('Statamic Auto Alt Text Field Action Registered for text-fieldtype.')
 })
-
-// Add an empty export to treat this file as a module.
-export {}
