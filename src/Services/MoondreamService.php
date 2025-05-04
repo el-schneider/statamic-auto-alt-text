@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Image;
 use Statamic\Assets\Asset;
+use Statamic\Facades\Image;
 
 final class MoondreamService implements CaptionService
 {
@@ -110,19 +110,11 @@ final class MoondreamService implements CaptionService
 
     /**
      * Check if the service supports generating a caption for the given asset type.
-     * Currently excludes SVGs due to processing limitations.
      */
     public function supportsAssetType(Asset $asset): bool
     {
-        $mimeType = $asset->mimeType() ?? '';
-
-        // SVGs are currently excluded as they may not be easily processed by GD
-        if ($mimeType === 'image/svg+xml') {
-            return false;
-        }
-
-        // Check if the mime type starts with 'image/' for other types
-        return Str::startsWith($mimeType, 'image/');
+        // isImage excludes SVGs
+        return $asset->isImage();
     }
 
     /**
@@ -217,6 +209,8 @@ final class MoondreamService implements CaptionService
         $response = $client->withHeaders($headers)
             ->post($this->endpoint, [
                 'image_url' => $base64Image,
+                'length' => config('statamic.auto-alt-text.services.moondream.cloud.options.length'),
+                'stream' => config('statamic.auto-alt-text.services.moondream.cloud.options.stream'),
             ]);
 
         if ($response->failed()) {

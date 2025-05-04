@@ -31,11 +31,19 @@ return [
             'cloud' => [
                 'api_key' => env('MOONDREAM_API_KEY'),
                 'endpoint' => env('MOONDREAM_CLOUD_ENDPOINT', 'https://api.moondream.ai/v1/caption'),
+                'options' => [
+                    'length' => 'short',
+                    'stream' => false,
+                ],
             ],
 
             // Local endpoint configuration
             'local' => [
                 'endpoint' => env('MOONDREAM_LOCAL_ENDPOINT', 'http://localhost:2020/v1/caption'),
+                'options' => [
+                    'length' => 'short',
+                    'stream' => false,
+                ],
             ],
         ],
         // Add other services here in the future

@@ -80,7 +80,6 @@ final class ServiceProvider extends AddonServiceProvider
         $eventsToListen = config('statamic.auto-alt-text.automatic_generation_events', []);
 
         if (! is_array($eventsToListen)) {
-            // Consider logging or handling potential misconfiguration here
             return;
         }
 
@@ -88,8 +87,6 @@ final class ServiceProvider extends AddonServiceProvider
             if (class_exists($eventClass)) {
                 Event::listen($eventClass, HandleAssetEvent::class);
             }
-            // Consider logging or warning about invalid event classes in config here
-
         }
     }
 }
