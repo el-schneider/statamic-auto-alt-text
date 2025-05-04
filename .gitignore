@@ -6,3 +6,4 @@ composer.lock
 resources/dist
 .cursorrules
 /docs
+.DS_Store
