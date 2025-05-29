@@ -48,7 +48,7 @@ final class ServiceProvider extends AddonServiceProvider
         ], 'statamic-auto-alt-text-config');
 
         $this->app->singleton(CaptionServiceFactory::class);
-        $this->app->bind(CaptionService::class, function ($app) {
+        $this->app->singleton(CaptionService::class, function ($app) {
             return $app->make(CaptionServiceFactory::class)->make();
         });
         $this->app->bind(MoondreamService::class);
