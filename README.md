@@ -39,6 +39,18 @@ MOONDREAM_API_KEY=your_api_key_here
 
 Refer to the published configuration file (`config/statamic/auto-alt-text.php`) for additional options, including switching between services.
 
+### Non-English Captions
+
+#### Moondream
+Currently, Moondream only supports English language captions. If you need captions in other languages, consider using the OpenAI service instead.
+
+#### OpenAI
+OpenAI supports multiple languages. You can customize the prompt to generate captions in your preferred language by setting the `OPENAI_PROMPT` environment variable:
+
+```dotenv
+OPENAI_PROMPT="Beschreibe dieses Bild kurz und bündig, um einen Alternativtext für Barrierefreiheit bereitzustellen. Bitte antworte ausschließlich mit dem Alt-Text, keine Einleitung oder Erläuterungen."
+```
+
 ## Usage
 
 ### Automatic Generation

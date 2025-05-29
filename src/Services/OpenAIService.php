@@ -28,8 +28,6 @@ final class OpenAIService implements CaptionService
 
     private int $maxTokens;
 
-    private string $altTextField;
-
     public function __construct(HttpClient $http, array $config)
     {
         $this->http = $http;
@@ -38,7 +36,6 @@ final class OpenAIService implements CaptionService
         $this->endpoint = $config['endpoint'] ?? 'https://api.openai.com/v1/chat/completions';
         $this->prompt = $config['prompt'] ?? 'Describe this image concisely for accessibility alt text.';
         $this->maxTokens = $config['max_tokens'] ?? 100;
-        $this->altTextField = config('statamic.auto-alt-text.alt_text_field', 'alt');
 
         if (empty($this->apiKey)) {
             Log::error('OpenAI API key is not configured for Statamic Auto Alt Text.');
@@ -56,7 +53,11 @@ final class OpenAIService implements CaptionService
         Event::dispatch(new BeforeCaptionGeneration($asset));
 
         try {
-            $imageUrl = $asset->absoluteUrl();
+            if (env('AUTO_ALT_TEXT_NGROK_URL')) {
+                $imageUrl = env('AUTO_ALT_TEXT_NGROK_URL').$asset->url();
+            } else {
+                $imageUrl = $asset->absoluteUrl();
+            }
 
             $response = $this->http->withToken($this->apiKey)
                 ->timeout(60)
@@ -100,9 +101,6 @@ final class OpenAIService implements CaptionService
                 ]);
                 throw new CaptionGenerationException('OpenAI API returned an empty caption.');
             }
-
-            // Clean up the caption (remove quotes, trim whitespace)
-            $caption = mb_trim($caption, " \\n\\r\\t\\v\\x00\"'");
 
             if (config('statamic.auto-alt-text.log_completions', false)) {
                 Log::info("OpenAI Service: Generated caption for asset {$asset->id()}: {$caption}");

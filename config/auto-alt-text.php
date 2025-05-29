@@ -12,7 +12,7 @@ return [
     | Currently supported: 'moondream', 'openai'
     |
     */
-    'service' => 'moondream',
+    'service' => env('AUTO_ALT_TEXT_SERVICE', 'moondream'),
 
     /*
     |--------------------------------------------------------------------------
