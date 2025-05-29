@@ -22,8 +22,6 @@ final class MoondreamService implements CaptionService
 {
     private HttpClient $httpClient;
 
-    private string $mode;
-
     private string $endpoint;
 
     private ?string $apiKey;
@@ -35,26 +33,18 @@ final class MoondreamService implements CaptionService
     public function __construct(HttpClient $httpClient, array $config)
     {
         $this->httpClient = $httpClient;
-        $this->mode = $config['mode'] ?? 'cloud';
-        $this->maxDimensionPixels = config('statamic.auto-alt-text.max_dimension_pixels'); // Keep this global config for now
-
-        if ($this->mode === 'cloud') {
-            $this->endpoint = $config['cloud']['endpoint'] ?? '';
-            $this->apiKey = $config['cloud']['api_key'] ?? null;
-            $this->options = $config['cloud']['options'] ?? [];
-        } else { // local mode
-            $this->endpoint = $config['local']['endpoint'] ?? '';
-            $this->apiKey = null; // No API key for local mode
-            $this->options = $config['local']['options'] ?? [];
-        }
+        $this->endpoint = $config['endpoint'] ?? '';
+        $this->apiKey = $config['api_key'] ?? null;
+        $this->options = $config['options'] ?? [];
+        $this->maxDimensionPixels = config('statamic.auto-alt-text.max_dimension_pixels');
 
         if (empty($this->endpoint)) {
-            Log::error("Moondream endpoint is not configured for '{$this->mode}' mode.");
-            // Potentially throw an exception
+            Log::error('Moondream endpoint is not configured.');
         }
-        if ($this->mode === 'cloud' && empty($this->apiKey)) {
-            Log::error('Moondream API key is not configured for cloud mode.');
-            // Potentially throw an exception
+
+        // Check if using cloud API without API key
+        if (str_contains($this->endpoint, 'api.moondream.ai') && empty($this->apiKey)) {
+            Log::error('Moondream cloud API key is required when using the cloud endpoint (api.moondream.ai). Please set MOONDREAM_API_KEY in your .env file or use a local endpoint.');
         }
     }
 
@@ -248,7 +238,7 @@ final class MoondreamService implements CaptionService
         $client = $this->httpClient->timeout(config('statamic.auto-alt-text.api_timeout', 30));
         $headers = ['Content-Type' => 'application/json'];
 
-        if ($this->mode === 'cloud' && $this->apiKey) {
+        if ($this->apiKey) {
             $headers['X-Moondream-Auth'] = $this->apiKey;
         }
 

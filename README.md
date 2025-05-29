@@ -13,7 +13,7 @@
 
 - **Automatic Generation:** Generate alt text for assets using AI by listening for Statamic asset events
 - **Multiple AI Providers:** Support for Moondream (cloud or self-hosted) and OpenAI (GPT-4 Vision)
-- **Data Privacy:** Option to run Moondream locally, keeping image data within your infrastructure
+- **Data Privacy:** Option to use local Moondream endpoints, keeping image data within your infrastructure
 - **Control Panel Integration:** Field Action to generate alt text for individual images
 - **Bulk Processing:** Artisan Command for processing images individually or in batch
 
@@ -31,7 +31,7 @@ php artisan vendor:publish --tag="statamic-auto-alt-text-config"
 
 ## Configuration
 
-By default, the addon uses the `moondream` service in `cloud` mode. Set your API key in your `.env` file:
+By default, the addon uses the `moondream` service with the cloud API. Set your API key in your `.env` file:
 
 ```dotenv
 MOONDREAM_API_KEY=your_api_key_here
@@ -76,9 +76,9 @@ For privacy or compliance reasons, you can run Moondream locally:
 1. **Set up Moondream:** Follow the [Quickstart guide](https://moondream.ai/c/docs/quickstart) to set up a local Moondream server
 2. **Configure the addon:** Update your `.env` file:
    ```dotenv
-   # Switch to local mode
-   MOONDREAM_MODE=local
+   # Set your local server endpoint (default points to cloud API)
+   MOONDREAM_ENDPOINT=http://your-local-moondream-server:port/v1/caption
 
-   # Set your local server endpoint (default: http://localhost:2020/v1/caption)
-   MOONDREAM_LOCAL_ENDPOINT=http://your-local-moondream-server:port/v1/caption
+   # You may not need an API key for local setups (remove or leave empty if not required)
+   # MOONDREAM_API_KEY=
    ```

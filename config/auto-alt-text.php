@@ -9,7 +9,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | The default service to use for generating image captions.
-    | Currently supported: 'moondream'
+    | Currently supported: 'moondream', 'openai'
     |
     */
     'service' => 'moondream',
@@ -24,26 +24,11 @@ return [
     */
     'services' => [
         'moondream' => [
-            // Whether to use the cloud API or a local endpoint
-            'mode' => env('MOONDREAM_MODE', 'cloud'), // 'cloud' or 'local'
-
-            // Cloud API configuration
-            'cloud' => [
-                'api_key' => env('MOONDREAM_API_KEY'),
-                'endpoint' => env('MOONDREAM_CLOUD_ENDPOINT', 'https://api.moondream.ai/v1/caption'),
-                'options' => [
-                    'length' => 'short',
-                    'stream' => false,
-                ],
-            ],
-
-            // Local endpoint configuration
-            'local' => [
-                'endpoint' => env('MOONDREAM_LOCAL_ENDPOINT', 'http://localhost:2020/v1/caption'),
-                'options' => [
-                    'length' => 'short',
-                    'stream' => false,
-                ],
+            'endpoint' => env('MOONDREAM_ENDPOINT', 'https://api.moondream.ai/v1/caption'),
+            'api_key' => env('MOONDREAM_API_KEY'),
+            'options' => [
+                'length' => 'short',
+                'stream' => false,
             ],
         ],
         'openai' => [
@@ -53,8 +38,6 @@ return [
             'prompt' => env('OPENAI_PROMPT', 'Describe this image concisely for accessibility alt text.'),
             'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 100),
         ],
-        // Add other services here in the future
-        // 'another_service' => [...],
     ],
 
     /*
@@ -67,16 +50,6 @@ return [
     |
     */
     'alt_text_field' => 'alt',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Batch Processing Size
-    |--------------------------------------------------------------------------
-    |
-    | Default batch size for processing multiple assets via the CLI command.
-    |
-    */
-    'batch_size' => 50,
 
     /*
     |--------------------------------------------------------------------------
@@ -116,23 +89,6 @@ return [
     |
     */
     'max_dimension_pixels' => env('AUTO_ALT_TEXT_MAX_DIMENSION', 1920), // Default to 1920px
-
-    /*
-    |--------------------------------------------------------------------------
-    | Caption Service
-    |--------------------------------------------------------------------------
-    |
-    | Configure the caption generation service. Currently, only 'moondream'
-    | is supported. You can specify the API endpoint for the service.
-    |
-    */
-    'caption_service' => [
-        'driver' => env('AUTO_ALT_TEXT_DRIVER', 'moondream'),
-
-        'moondream' => [
-            'endpoint' => env('MOONDREAM_ENDPOINT'),
-        ],
-    ],
 
     /*
     |--------------------------------------------------------------------------
