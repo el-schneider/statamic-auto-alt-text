@@ -56,11 +56,13 @@ The addon listens for configured Statamic events (default: `AssetUploaded` and `
 
 Optionally customize the queue configuration:
 
+#### Optional: Defaults to your application's default queue connection
 ```dotenv
-# Optional: Defaults to your application's default queue connection
 AUTO_ALT_TEXT_QUEUE_CONNECTION=redis
+```
 
-# Optional: Defaults to the default queue name for the connection
+#### Optional: Defaults to the default queue name for the connection
+```dotenv
 AUTO_ALT_TEXT_QUEUE_NAME=alt_text_generation
 ```
 
@@ -82,10 +84,14 @@ For privacy or compliance reasons, you can run Moondream locally:
 
 1. **Set up Moondream:** Follow the [Quickstart guide](https://moondream.ai/c/docs/quickstart) to set up a local Moondream server
 2. **Configure the addon:** Update your `.env` file:
-   ```dotenv
-   # Set your local server endpoint (default points to cloud API)
-   MOONDREAM_ENDPOINT=http://your-local-moondream-server:port/v1/caption
+  #### Set your local server endpoint (default points to cloud API)
 
-   # You may not need an API key for local setups (remove or leave empty if not required)
-   # MOONDREAM_API_KEY=
-   ```
+  ```dotenv
+  MOONDREAM_ENDPOINT=http://your-local-moondream-server:port/v1/caption
+  ```
+
+  #### You may not need an API key for local setups (remove or leave empty if not required)
+
+  ```dotenv
+  MOONDREAM_API_KEY=
+  ```
