@@ -15,7 +15,7 @@
 ## Installation
 
 ```bash
-composer require el-schneider/auto-alt-text
+composer require el-schneider/statamic-auto-alt-text
 ```
 
 Publish the configuration file:
