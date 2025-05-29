@@ -1,11 +1,6 @@
-<img src="images/aat_banner.png" alt="Auto Alt Text" width="400">
+<img src="images/aat_banner.png" alt="Auto Alt Text">
 
 # Statamic Auto Alt Text
-
-<p align="center">
-  <img src="images/md_logo.svg" alt="Moondream Logo" width="50" style="margin-right: 15px;" />
-  <img src="images/openai_logo.svg" alt="OpenAI Logo" width="100"/>
-</p>
 
 > Automatically generate descriptive alt text for images in Statamic v5 using AI services (Moondream or OpenAI GPT-4 Vision)
 
