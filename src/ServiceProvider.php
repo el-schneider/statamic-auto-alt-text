@@ -10,6 +10,7 @@ use ElSchneider\StatamicAutoAltText\Facades\AutoAltText as AutoAltTextFacade;
 use ElSchneider\StatamicAutoAltText\FieldActions\GenerateAltTextAction;
 use ElSchneider\StatamicAutoAltText\Listeners\HandleAssetEvent;
 use ElSchneider\StatamicAutoAltText\Services\CaptionServiceFactory;
+use ElSchneider\StatamicAutoAltText\Services\ImageProcessor;
 use ElSchneider\StatamicAutoAltText\Services\MoondreamService;
 use ElSchneider\StatamicAutoAltText\StatamicActions\GenerateAltTextAction as StatamicGenerateAltTextAction;
 use Illuminate\Support\Facades\Event;
@@ -47,6 +48,7 @@ final class ServiceProvider extends AddonServiceProvider
             __DIR__.'/../config/auto-alt-text.php' => config_path('statamic/auto-alt-text.php'),
         ], 'statamic-auto-alt-text-config');
 
+        $this->app->singleton(ImageProcessor::class);
         $this->app->singleton(CaptionServiceFactory::class);
         $this->app->singleton(CaptionService::class, function ($app) {
             return $app->make(CaptionServiceFactory::class)->make();

@@ -16,7 +16,11 @@ use Throwable;
 
 final class OpenAIService implements CaptionService
 {
+    private const TARGET_FORMAT = 'webp';
+
     private HttpClient $http;
+
+    private ImageProcessor $imageProcessor;
 
     private string $apiKey;
 
@@ -28,14 +32,18 @@ final class OpenAIService implements CaptionService
 
     private int $maxTokens;
 
-    public function __construct(HttpClient $http, array $config)
+    private string $detail;
+
+    public function __construct(HttpClient $http, ImageProcessor $imageProcessor, array $config)
     {
         $this->http = $http;
+        $this->imageProcessor = $imageProcessor;
         $this->apiKey = $config['api_key'] ?? '';
         $this->model = $config['model'] ?? 'gpt-4-turbo';
         $this->endpoint = $config['endpoint'] ?? 'https://api.openai.com/v1/chat/completions';
         $this->prompt = $config['prompt'] ?? 'Describe this image concisely for accessibility alt text.';
         $this->maxTokens = $config['max_tokens'] ?? 100;
+        $this->detail = $config['detail'] ?? 'auto';
 
         if (empty($this->apiKey)) {
             Log::error('OpenAI API key is not configured for Statamic Auto Alt Text.');
@@ -53,10 +61,12 @@ final class OpenAIService implements CaptionService
         Event::dispatch(new BeforeCaptionGeneration($asset));
 
         try {
-            if (env('AUTO_ALT_TEXT_NGROK_URL')) {
-                $imageUrl = env('AUTO_ALT_TEXT_NGROK_URL').$asset->url();
-            } else {
-                $imageUrl = $asset->absoluteUrl();
+            $base64Image = $this->imageProcessor->processImageToBase64($asset, self::TARGET_FORMAT);
+
+            if (! $base64Image) {
+                Log::warning("OpenAI Service: Could not process image for Base64 encoding: {$asset->path()}");
+
+                return null;
             }
 
             $response = $this->http->withToken($this->apiKey)
@@ -74,7 +84,8 @@ final class OpenAIService implements CaptionService
                                 [
                                     'type' => 'image_url',
                                     'image_url' => [
-                                        'url' => $imageUrl,
+                                        'url' => $base64Image,
+                                        'detail' => $this->detail,
                                     ],
                                 ],
                             ],
@@ -123,6 +134,7 @@ final class OpenAIService implements CaptionService
 
     public function supportsAssetType(Asset $asset): bool
     {
-        return $asset->extensionIsOneOf(['png', 'jpeg', 'jpg', 'gif', 'webp']);
+        // Support any image that can be processed (excludes SVGs and non-images)
+        return $asset->isImage();
     }
 }

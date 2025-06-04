@@ -18,10 +18,17 @@ final class CaptionServiceFactory
     {
         $service = $serviceName ?? config('statamic.auto-alt-text.service', 'moondream');
         $config = config("statamic.auto-alt-text.services.{$service}");
+        $imageProcessor = $this->container->make(ImageProcessor::class);
 
         return match ($service) {
-            'moondream' => $this->container->make(MoondreamService::class, ['config' => $config]),
-            'openai' => $this->container->make(OpenAIService::class, ['config' => $config]),
+            'moondream' => $this->container->make(MoondreamService::class, [
+                'imageProcessor' => $imageProcessor,
+                'config' => $config,
+            ]),
+            'openai' => $this->container->make(OpenAIService::class, [
+                'imageProcessor' => $imageProcessor,
+                'config' => $config,
+            ]),
             default => throw new InvalidArgumentException("Unsupported caption service: {$service}"),
         };
     }
