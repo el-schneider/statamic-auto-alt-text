@@ -57,11 +57,13 @@ The addon listens for configured Statamic events (default: `AssetUploaded` and `
 Optionally customize the queue configuration:
 
 #### Optional: Defaults to your application's default queue connection
+
 ```dotenv
 AUTO_ALT_TEXT_QUEUE_CONNECTION=redis
 ```
 
 #### Optional: Defaults to the default queue name for the connection
+
 ```dotenv
 AUTO_ALT_TEXT_QUEUE_NAME=alt_text_generation
 ```
@@ -73,10 +75,12 @@ For existing assets or specific workflows:
 1. **Field Action:** Edit an asset, find the `alt` text field, and click the "Generate Alt Text" action
 2. **Statamic Action:** In an Asset container, use the "Generate Alt Text" action from the contextual menu
 3. **CLI Command:** Process assets in bulk with:
-   ```bash
-   php artisan auto-alt:generate
-   ```
-   See `php artisan auto-alt:generate --help` for options to specify containers, assets, and overwriting behavior
+
+```bash
+php please auto-alt:generate
+```
+
+See `php please auto-alt:generate --help` for options to specify containers, assets, and overwriting behavior
 
 ### Using Local Moondream
 
@@ -84,14 +88,14 @@ For privacy or compliance reasons, you can run Moondream locally:
 
 1. **Set up Moondream:** Follow the [Quickstart guide](https://moondream.ai/c/docs/quickstart) to set up a local Moondream server
 2. **Configure the addon:** Update your `.env` file:
-  #### Set your local server endpoint (default points to cloud API)
+#### Set your local server endpoint (default points to cloud API)
 
-  ```dotenv
-  MOONDREAM_ENDPOINT=http://your-local-moondream-server:port/v1/caption
-  ```
+```dotenv
+MOONDREAM_ENDPOINT=http://your-local-moondream-server:port/v1/caption
+```
 
-  #### You may not need an API key for local setups (remove or leave empty if not required)
+#### You may not need an API key for local setups (remove or leave empty if not required)
 
-  ```dotenv
-  MOONDREAM_API_KEY=
-  ```
+```dotenv
+MOONDREAM_API_KEY=
+```
