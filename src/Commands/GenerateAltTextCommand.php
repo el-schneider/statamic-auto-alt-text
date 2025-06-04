@@ -10,13 +10,16 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Statamic\Assets\AssetCollection;
+use Statamic\Console\RunsInPlease;
 use Statamic\Contracts\Assets\Asset as AssetContract;
 use Statamic\Facades\Asset;
 use Statamic\Facades\AssetContainer;
 
 final class GenerateAltTextCommand extends Command
 {
-    protected $signature = 'auto-alt:generate
+    use RunsInPlease;
+
+    protected $signature = 'statamic:auto-alt:generate
                             {container? : The asset container handle to process}
                             {--asset=* : Specific asset IDs or paths to process}
                             {--overwrite-existing : Overwrite existing alt text}
@@ -87,11 +90,11 @@ final class GenerateAltTextCommand extends Command
 
     private function getAssetsToProcess(?string $containerHandle, array $assetIdentifiers, bool $overwriteExisting, string $fieldName): AssetCollection
     {
-        $assets = new AssetCollection();
+        $assets = new AssetCollection;
 
         // If specific asset IDs or paths were provided
         if (! empty($assetIdentifiers)) {
-            $foundAssets = new AssetCollection();
+            $foundAssets = new AssetCollection;
             foreach ($assetIdentifiers as $identifier) {
                 // Try finding by ID first, then by path
                 $asset = Asset::find($identifier) ?? Asset::findByPath($identifier);
@@ -109,13 +112,13 @@ final class GenerateAltTextCommand extends Command
             if (! $container) {
                 $this->error("Asset container '{$containerHandle}' not found.");
 
-                return new AssetCollection();
+                return new AssetCollection;
             }
             $assets = Asset::query()->where('container', $container->handle())->get();
         }
         // If no specific assets or container specified, process all containers
         else {
-            $allAssets = new AssetCollection();
+            $allAssets = new AssetCollection;
             foreach (AssetContainer::all() as $container) {
                 $containerAssets = Asset::query()->where('container', $container->handle())->get();
                 $allAssets = $allAssets->merge($containerAssets);
