@@ -12,15 +12,15 @@ use Exception;
 use Illuminate\Http\Client\Factory as HttpClient;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Intervention\Image\ImageManagerStatic as InterventionImage;
 use Statamic\Assets\Asset;
-use Statamic\Assets\AssetContainer;
 
 final class MoondreamService implements CaptionService
 {
+    private const TARGET_FORMAT = 'jpeg';
+
     private HttpClient $httpClient;
+
+    private ImageProcessor $imageProcessor;
 
     private string $endpoint;
 
@@ -28,15 +28,13 @@ final class MoondreamService implements CaptionService
 
     private array $options;
 
-    private ?int $maxDimensionPixels;
-
-    public function __construct(HttpClient $httpClient, array $config)
+    public function __construct(HttpClient $httpClient, ImageProcessor $imageProcessor, array $config)
     {
         $this->httpClient = $httpClient;
+        $this->imageProcessor = $imageProcessor;
         $this->endpoint = $config['endpoint'] ?? '';
         $this->apiKey = $config['api_key'] ?? null;
         $this->options = $config['options'] ?? [];
-        $this->maxDimensionPixels = config('statamic.auto-alt-text.max_dimension_pixels');
 
         if (empty($this->endpoint)) {
             Log::error('Moondream endpoint is not configured.');
@@ -59,9 +57,9 @@ final class MoondreamService implements CaptionService
         Event::dispatch(new BeforeCaptionGeneration($asset));
 
         try {
-            $base64Image = $this->readImageToBase64($asset);
+            $base64Image = $this->imageProcessor->processImageToBase64($asset, self::TARGET_FORMAT);
             if (! $base64Image) {
-                Log::warning("Could not read image file for Base64 encoding: {$asset->path()}");
+                Log::warning("Could not process image file for Base64 encoding: {$asset->path()}");
 
                 return null;
             }
@@ -97,140 +95,8 @@ final class MoondreamService implements CaptionService
      */
     public function supportsAssetType(Asset $asset): bool
     {
-        // isImage excludes SVGs
+        // Support any image that can be processed (excludes SVGs and non-images)
         return $asset->isImage();
-    }
-
-    /**
-     * Reads image content, potentially resizes it, and returns Base64 encoded string.
-     */
-    private function readImageToBase64(Asset $asset): ?string
-    {
-        $assetData = $this->getAssetData($asset);
-        if (! $assetData) {
-            return null;
-        }
-
-        [$originalContent, $originalMimeType, $diskName, $path] = $assetData;
-
-        try {
-            $width = $asset->width();
-            $height = $asset->height();
-
-            if ($width === null || $height === null) {
-                Log::warning("Could not determine dimensions for asset [Disk: {$diskName}, Path: {$path}]. Skipping resize check.");
-                $finalContent = $originalContent;
-                $finalMimeType = $originalMimeType;
-            } else {
-                $needsResizing = $this->maxDimensionPixels !== null &&
-                                 ($width > $this->maxDimensionPixels || $height > $this->maxDimensionPixels);
-
-                if ($needsResizing) {
-                    Log::debug("Attempting to resize image in memory [Disk: {$diskName}, Path: {$path}]");
-                    [$finalContent, $finalMimeType] = $this->resizeImageContent(
-                        $originalContent,
-                        $originalMimeType,
-                        $width,
-                        $height
-                    );
-                } else {
-                    $finalContent = $originalContent;
-                    $finalMimeType = $originalMimeType;
-                }
-            }
-
-        } catch (Exception $e) {
-            Log::error("Error processing image dimensions or resizing [Disk: {$diskName}, Path: {$path}]: {$e->getMessage()}");
-            Log::error($e->getTraceAsString());
-
-            return null;
-        }
-
-        if (empty($finalContent) || empty($finalMimeType)) {
-            Log::error("Final content or mime type empty after processing [Disk: {$diskName}, Path: {$path}]");
-
-            return null;
-        }
-
-        return 'data:'.$finalMimeType.';base64,'.base64_encode($finalContent);
-    }
-
-    /**
-     * Get the content, mime type, disk name, and path for an asset.
-     * Returns null if the asset cannot be read.
-     */
-    private function getAssetData(Asset $asset): ?array
-    {
-        try {
-            /** @var AssetContainer $container */
-            $container = $asset->container();
-            $diskName = $container->handle();
-            $path = $asset->path();
-            $storage = Storage::disk($diskName);
-
-            if (! $storage->exists($path)) {
-                Log::error("Asset file not found on disk '{$diskName}' at path: {$path}");
-
-                return null;
-            }
-
-            $content = $storage->get($path);
-            $mimeType = $storage->mimeType($path); // Linter might flag this, but it's correct Laravel Storage usage
-
-            if (empty($content) || empty($mimeType)) {
-                Log::error("Failed to read content or mime type [Disk: {$diskName}, Path: {$path}]");
-
-                return null;
-            }
-
-            return [$content, $mimeType, $diskName, $path];
-
-        } catch (Exception $e) {
-            $logDisk = isset($diskName) ? $diskName : 'unknown';
-            $logPath = isset($path) ? $path : $asset->path() ?? 'unknown';
-            Log::error("Error accessing asset file [Source: {$logDisk}, Path: {$logPath}]: {$e->getMessage()}");
-            Log::error($e->getTraceAsString());
-
-            return null;
-        }
-    }
-
-    /**
-     * Resize image content if necessary based on configured max dimensions.
-     * Returns an array containing the (potentially resized) content and final mime type.
-     */
-    private function resizeImageContent(string $content, string $mimeType, int $width, int $height): array
-    {
-        $image = InterventionImage::make($content);
-
-        $targetWidth = null;
-        $targetHeight = null;
-        if ($width > $height) {
-            $targetWidth = $this->maxDimensionPixels;
-        } else {
-            $targetHeight = $this->maxDimensionPixels;
-        }
-
-        $image->resize($targetWidth, $targetHeight, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
-        });
-
-        $format = Str::after($mimeType, '/');
-        $supportedFormats = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'bmp', 'webp'];
-
-        if (! in_array($format, $supportedFormats)) {
-            Log::warning("Unsupported image format for Intervention encode '{$format}', falling back to jpg.");
-            $format = 'jpg';
-            $finalMimeType = 'image/jpeg';
-        } else {
-            $finalMimeType = $mimeType;
-        }
-
-        $quality = ($format === 'jpeg' || $format === 'jpg') ? 85 : null;
-        $resizedContent = (string) $image->encode($format, $quality);
-
-        return [$resizedContent, $finalMimeType];
     }
 
     private function makeApiRequest(string $base64Image): array
