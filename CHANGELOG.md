@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.1 - 2025-06-12
+
+### What's fixed
+
+- fix wrong permission checks, #1
+
+**Full Changelog**: https://github.com/el-schneider/statamic-auto-alt-text/compare/v0.3.0...v0.3.1
+
 ## v0.3.0 - 2025-06-04
 
 ### What's new
