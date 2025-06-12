@@ -4,53 +4,50 @@ declare(strict_types=1);
 
 namespace ElSchneider\StatamicAutoAltText\StatamicActions;
 
+use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\StatamicAutoAltText;
 use Statamic\Actions\Action;
-use Statamic\Contracts\Assets\Asset;
-use Statamic\Facades\User;
+use Statamic\Contracts\Assets\Asset as AssetContract;
+use Statamic\Facades\Asset;
 
 final class GenerateAltTextAction extends Action
 {
-    // Use constructor property promotion
     public function __construct(
+        private readonly CaptionService $captionService,
         private readonly StatamicAutoAltText $autoAltText
     ) {
         parent::__construct();
     }
 
-    public static function title()
+    public static function title(): string
     {
-        return __('Generate Alt Text (Queued)');
+        return __('auto-alt-text::messages.generate_alt_text_action');
     }
 
-    public function visibleTo($item)
+    public function run($items, $values): void
     {
-        return $item instanceof Asset;
-    }
-
-    public function authorize($user, $item)
-    {
-        // Ensure the user has permission to update the asset
-        return $user->can('update', $item);
-    }
-
-    /**
-     * Run the action by dispatching jobs for each item.
-     */
-    public function run($items, $values)
-    {
-        $count = $items->count();
-
-        if ($count === 0) {
-            return __('No items selected.');
-        }
 
         foreach ($items as $item) {
-            if ($item instanceof Asset) {
-                $this->autoAltText->dispatchGenerationJob($item);
+            $asset = Asset::find($item);
+
+            if ($asset) {
+                $this->autoAltText->dispatchGenerationJob($asset);
             }
         }
+    }
 
-        return trans_choice('Queued alt text generation for :count item(s).', $count);
+    public function authorize($user, $item): bool
+    {
+        return $user->can('edit', $item);
+    }
+
+    public function visibleTo($item): bool
+    {
+        if (! $item instanceof AssetContract) {
+            return false;
+        }
+
+        // Only show for supported image assets based on the configured service
+        return $this->captionService->supportsAssetType($item);
     }
 }

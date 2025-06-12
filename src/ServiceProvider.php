@@ -7,7 +7,6 @@ namespace ElSchneider\StatamicAutoAltText;
 use ElSchneider\StatamicAutoAltText\Commands\GenerateAltTextCommand;
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Facades\AutoAltText as AutoAltTextFacade;
-use ElSchneider\StatamicAutoAltText\FieldActions\GenerateAltTextAction;
 use ElSchneider\StatamicAutoAltText\Listeners\HandleAssetEvent;
 use ElSchneider\StatamicAutoAltText\Services\CaptionServiceFactory;
 use ElSchneider\StatamicAutoAltText\Services\ImageProcessor;
@@ -24,7 +23,7 @@ final class ServiceProvider extends AddonServiceProvider
     ];
 
     protected $actions = [
-        GenerateAltTextAction::class,
+        StatamicGenerateAltTextAction::class,
     ];
 
     protected $vite = [
@@ -60,8 +59,6 @@ final class ServiceProvider extends AddonServiceProvider
         });
 
         $this->app->alias('auto-alt-text', AutoAltTextFacade::class);
-
-        StatamicGenerateAltTextAction::register();
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'auto-alt-text');
 

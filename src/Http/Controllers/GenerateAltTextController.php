@@ -41,7 +41,7 @@ final class GenerateAltTextController extends Controller
         $user = Auth::user();
 
         // Ensure user exists and can update the asset
-        if (! $user || ! $user->can('update', $asset)) {
+        if (! $user || ! $user->can('edit', $asset)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized.',
