@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.2 - 2025-06-20
+
+### What's new
+
+- add `---dispatch-jobs` flag to allow asynchronous processing of alt text generation
+
+**Full Changelog**: https://github.com/el-schneider/statamic-auto-alt-text/compare/v0.3.1...v0.3.2
+
 ## v0.3.1 - 2025-06-12
 
 ### What's fixed
