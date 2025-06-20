@@ -6,6 +6,7 @@ namespace ElSchneider\StatamicAutoAltText\Commands;
 
 use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
+use ElSchneider\StatamicAutoAltText\Jobs\GenerateAltTextJob;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +24,8 @@ final class GenerateAltTextCommand extends Command
                             {container? : The asset container handle to process}
                             {--asset=* : Specific asset IDs or paths to process}
                             {--overwrite-existing : Overwrite existing alt text}
-                            {--field= : The field to save alt text to (defaults to config)}';
+                            {--field= : The field to save alt text to (defaults to config)}
+                            {--dispatch-jobs : Dispatch jobs instead of processing synchronously}';
 
     protected $description = 'Generate alt text for image assets';
 
@@ -40,6 +42,7 @@ final class GenerateAltTextCommand extends Command
         $assetIdentifiers = $this->option('asset');
         $overwriteExisting = $this->option('overwrite-existing');
         $fieldName = $this->option('field') ?: config('statamic.auto-alt-text.alt_text_field', 'alt');
+        $dispatchJobs = $this->option('dispatch-jobs');
 
         $assetsToProcess = $this->getAssetsToProcess($containerHandle, $assetIdentifiers, $overwriteExisting, $fieldName);
 
@@ -52,6 +55,19 @@ final class GenerateAltTextCommand extends Command
         $totalAssets = $assetsToProcess->count();
         $this->info("Found {$totalAssets} image assets to process.");
 
+        if ($dispatchJobs) {
+            // Dispatch jobs for parallel processing
+            foreach ($assetsToProcess as $asset) {
+                GenerateAltTextJob::dispatch($asset, $fieldName, false);
+            }
+
+            $this->info("Dispatched {$totalAssets} jobs for parallel processing.");
+            $this->comment('Jobs have been queued. Use "php artisan queue:work" to process them.');
+
+            return self::SUCCESS;
+        }
+
+        // Original synchronous processing
         $progressBar = $this->output->createProgressBar($totalAssets);
         $progressBar->start();
 
