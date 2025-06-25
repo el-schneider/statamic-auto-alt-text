@@ -151,6 +151,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Individual Asset Ignore Field
+    |--------------------------------------------------------------------------
+    |
+    | Field handle to check on individual assets for exclusion from alt text
+    | generation. If this field exists on an asset and has a truthy value,
+    | the asset will be excluded from processing.
+    |
+    | This provides fine-grained control for individual assets beyond the
+    | pattern-based exclusions above. Useful for excluding specific images
+    | that require manual attention or should never have auto-generated alt text.
+    |
+    | To use this feature:
+    | 1. Add a toggle field with this handle to your asset blueprints
+    | 2. Set the field to true/on for assets you want to exclude
+    | 3. The field can be any type - any truthy value will exclude the asset
+    |
+    | Set to null to disable individual asset exclusion.
+    |
+    */
+    'ignore_field_handle' => 'auto_alt_text_ignore',
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue Configuration
     |--------------------------------------------------------------------------
     |

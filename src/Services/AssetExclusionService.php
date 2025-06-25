@@ -13,6 +13,13 @@ final class AssetExclusionService
      */
     public function shouldExclude(Asset $asset): bool
     {
+        // Check individual asset ignore field first
+        $ignoreFieldHandle = config('statamic.auto-alt-text.ignore_field_handle');
+        if ($ignoreFieldHandle && $asset->get($ignoreFieldHandle)) {
+            return true;
+        }
+
+        // Check pattern-based exclusions
         $patterns = config('statamic.auto-alt-text.ignore_patterns', []);
 
         if (empty($patterns)) {
