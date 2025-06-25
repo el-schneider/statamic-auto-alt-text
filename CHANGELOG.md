@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.0 - Add Asset Filtering - 2025-06-25
+
+### What's new
+
+- **new**: Individual asset ignore field for granular exclusion control
+- **new**: Global asset exclusion patterns to filter assets by filename or path
+- **new**: Container-specific filtering for targeted exclusion rules
+
+**Full Changelog**: https://github.com/el-schneider/statamic-auto-alt-text/compare/v0.3.2...v0.4.0
+
 ## v0.3.2 - 2025-06-20
 
 ### What's new
