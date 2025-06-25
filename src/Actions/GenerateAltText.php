@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ElSchneider\StatamicAutoAltText\Actions;
 
+use ElSchneider\StatamicAutoAltText\Services\AssetExclusionService;
 use ElSchneider\StatamicAutoAltText\Services\CaptionServiceFactory;
 use Illuminate\Support\Str;
 use Statamic\Assets\Asset;
@@ -11,7 +12,8 @@ use Statamic\Assets\Asset;
 final class GenerateAltText
 {
     public function __construct(
-        private readonly CaptionServiceFactory $serviceFactory
+        private readonly CaptionServiceFactory $serviceFactory,
+        private readonly AssetExclusionService $exclusionService
     ) {}
 
     /**
@@ -19,6 +21,11 @@ final class GenerateAltText
      */
     public function handle(Asset $asset, ?string $field = null, bool $saveQuietly = false): ?string
     {
+        // Final safety check - skip excluded assets
+        if ($this->exclusionService->shouldExclude($asset)) {
+            return null;
+        }
+
         $service = $this->serviceFactory->make();
         $caption = $service->generateCaption($asset);
 

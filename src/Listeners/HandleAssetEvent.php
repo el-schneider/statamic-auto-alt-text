@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ElSchneider\StatamicAutoAltText\Listeners;
 
+use ElSchneider\StatamicAutoAltText\Services\AssetExclusionService;
 use ElSchneider\StatamicAutoAltText\StatamicAutoAltText;
 use Illuminate\Support\Facades\Log;
 use Statamic\Assets\Asset;
@@ -11,7 +12,8 @@ use Statamic\Assets\Asset;
 final class HandleAssetEvent
 {
     public function __construct(
-        private readonly StatamicAutoAltText $autoAltText
+        private readonly StatamicAutoAltText $autoAltText,
+        private readonly AssetExclusionService $exclusionService
     ) {}
 
     /**
@@ -39,6 +41,11 @@ final class HandleAssetEvent
 
         // Check if alt text is already present
         if (! empty($asset->get($altTextField))) {
+            return;
+        }
+
+        // Check if asset should be excluded from processing
+        if ($this->exclusionService->shouldExclude($asset)) {
             return;
         }
 

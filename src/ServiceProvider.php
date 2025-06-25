@@ -8,6 +8,7 @@ use ElSchneider\StatamicAutoAltText\Commands\GenerateAltTextCommand;
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Facades\AutoAltText as AutoAltTextFacade;
 use ElSchneider\StatamicAutoAltText\Listeners\HandleAssetEvent;
+use ElSchneider\StatamicAutoAltText\Services\AssetExclusionService;
 use ElSchneider\StatamicAutoAltText\Services\CaptionServiceFactory;
 use ElSchneider\StatamicAutoAltText\Services\ImageProcessor;
 use ElSchneider\StatamicAutoAltText\Services\MoondreamService;
@@ -53,6 +54,7 @@ final class ServiceProvider extends AddonServiceProvider
             return $app->make(CaptionServiceFactory::class)->make();
         });
         $this->app->bind(MoondreamService::class);
+        $this->app->singleton(AssetExclusionService::class);
 
         $this->app->singleton('auto-alt-text', function ($app) {
             return $app->make(StatamicAutoAltText::class);

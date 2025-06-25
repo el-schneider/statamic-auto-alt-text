@@ -114,6 +114,43 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Ignore Patterns
+    |--------------------------------------------------------------------------
+    |
+    | Configure patterns to exclude certain assets from alt text generation.
+    | Useful for excluding portraits for privacy reasons, non-descriptive
+    | images, or file types that don't need alt text.
+    |
+    | Supports glob patterns: *, ?, [abc], {jpg,jpeg}
+    | Patterns are matched against the asset's path relative to container root.
+    |
+    | Syntax:
+    | - 'pattern' - Global pattern applied to all containers
+    | - 'container::pattern' - Pattern applied only to specific container
+    |
+    | Examples:
+    | - 'portraits/*' - exclude all files in portraits folder (privacy)
+    | - 'logos/*' - exclude logo/branding images (non-descriptive)
+    | - 'temp/*' - exclude temporary files
+    | - 'assets::staff-photos/*' - exclude staff photos only in assets container
+    | - 'gallery::private/*' - exclude private folder only in gallery container
+    | - 'assets::screenshots/*.png' - exclude PNG screenshots in assets container
+    |
+    */
+    'ignore_patterns' => [
+        // Global patterns (applied to all containers)
+        // 'portraits/*',
+        // 'logos/*',
+        // 'temp/*',
+
+        // Container-specific patterns
+        // 'assets::staff-photos/*',
+        // 'gallery::private/*',
+        // 'documents::screenshots/*',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue Configuration
     |--------------------------------------------------------------------------
     |
