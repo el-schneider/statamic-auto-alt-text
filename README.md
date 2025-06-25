@@ -9,6 +9,7 @@
 - **Automatic Generation:** Generate alt text for assets using AI by listening for Statamic asset events
 - **Multiple AI Providers:** Support for Moondream (cloud or self-hosted) and OpenAI (GPT-4 Vision)
 - **Data Privacy:** Option to use local Moondream endpoints, keeping image data within your infrastructure
+- **Asset Filtering:** Exclude sensitive or private assets from processing with global patterns, container-specific rules, or individual asset settings
 - **Control Panel Integration:** Field Action to generate alt text for individual images
 - **Bulk Processing:** Artisan Command for processing images individually or in batch
 
