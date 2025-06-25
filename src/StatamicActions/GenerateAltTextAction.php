@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ElSchneider\StatamicAutoAltText\StatamicActions;
 
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
+use ElSchneider\StatamicAutoAltText\Services\AssetExclusionService;
 use ElSchneider\StatamicAutoAltText\StatamicAutoAltText;
 use Statamic\Actions\Action;
 use Statamic\Contracts\Assets\Asset as AssetContract;
@@ -14,7 +15,8 @@ final class GenerateAltTextAction extends Action
 {
     public function __construct(
         private readonly CaptionService $captionService,
-        private readonly StatamicAutoAltText $autoAltText
+        private readonly StatamicAutoAltText $autoAltText,
+        private readonly AssetExclusionService $exclusionService
     ) {
         parent::__construct();
     }
@@ -48,6 +50,15 @@ final class GenerateAltTextAction extends Action
         }
 
         // Only show for supported image assets based on the configured service
-        return $this->captionService->supportsAssetType($item);
+        if (! $this->captionService->supportsAssetType($item)) {
+            return false;
+        }
+
+        // Hide action for excluded assets
+        if ($this->exclusionService->shouldExclude($item)) {
+            return false;
+        }
+
+        return true;
     }
 }

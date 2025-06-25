@@ -7,6 +7,7 @@ namespace ElSchneider\StatamicAutoAltText\Commands;
 use ElSchneider\StatamicAutoAltText\Actions\GenerateAltText;
 use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Jobs\GenerateAltTextJob;
+use ElSchneider\StatamicAutoAltText\Services\AssetExclusionService;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +32,8 @@ final class GenerateAltTextCommand extends Command
 
     public function __construct(
         private readonly GenerateAltText $generateAltText,
-        private readonly CaptionService $captionService
+        private readonly CaptionService $captionService,
+        private readonly AssetExclusionService $exclusionService
     ) {
         parent::__construct();
     }
@@ -152,6 +154,11 @@ final class GenerateAltTextCommand extends Command
             // Skip assets with existing alt text unless overwrite is enabled
             $currentAltText = $asset->get($fieldName);
             if (! $overwriteExisting && ! empty($currentAltText)) {
+                return false;
+            }
+
+            // Check if asset should be excluded based on patterns
+            if ($this->exclusionService->shouldExclude($asset)) {
                 return false;
             }
 
