@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5.0 - 2025-07-13
+
+### What's new
+
+- Antlers templating support for dynamic prompts with asset data
+- Configurable system message to OpenAI service for better prompt control
+
+**Full Changelog**: https://github.com/el-schneider/statamic-auto-alt-text/compare/v0.4.0...v0.5.0
+
 ## v0.4.0 - Add Asset Filtering - 2025-06-25
 
 ### What's new
