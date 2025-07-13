@@ -8,6 +8,7 @@ use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Events\AfterCaptionGeneration;
 use ElSchneider\StatamicAutoAltText\Events\BeforeCaptionGeneration;
 use ElSchneider\StatamicAutoAltText\Exceptions\CaptionGenerationException;
+use ElSchneider\StatamicAutoAltText\Services\Concerns\ParsesPrompts;
 use Exception;
 use Illuminate\Http\Client\Factory as HttpClient;
 use Illuminate\Support\Facades\Event;
@@ -16,6 +17,8 @@ use Statamic\Assets\Asset;
 
 final class MoondreamService implements CaptionService
 {
+    use ParsesPrompts;
+
     private const TARGET_FORMAT = 'jpeg';
 
     private HttpClient $httpClient;
@@ -26,6 +29,8 @@ final class MoondreamService implements CaptionService
 
     private ?string $apiKey;
 
+    private string $prompt;
+
     private array $options;
 
     public function __construct(HttpClient $httpClient, ImageProcessor $imageProcessor, array $config)
@@ -34,6 +39,7 @@ final class MoondreamService implements CaptionService
         $this->imageProcessor = $imageProcessor;
         $this->endpoint = $config['endpoint'] ?? '';
         $this->apiKey = $config['api_key'] ?? null;
+        $this->prompt = $config['prompt'] ?? 'Create alt text for this image.';
         $this->options = $config['options'] ?? [];
 
         if (empty($this->endpoint)) {
@@ -64,7 +70,10 @@ final class MoondreamService implements CaptionService
                 return null;
             }
 
-            $response = $this->makeApiRequest($base64Image);
+            // Parse prompt with Antlers templating
+            $parsedPrompt = $this->parsePrompt($this->prompt, $asset);
+
+            $response = $this->makeApiRequest($base64Image, $parsedPrompt);
             $caption = $response['caption'] ?? null;
 
             if ($caption && config('statamic.auto-alt-text.log_completions', true)) {
@@ -99,7 +108,7 @@ final class MoondreamService implements CaptionService
         return $asset->isImage();
     }
 
-    private function makeApiRequest(string $base64Image): array
+    private function makeApiRequest(string $base64Image, string $prompt): array
     {
         $client = $this->httpClient->timeout(config('statamic.auto-alt-text.api_timeout', 30));
         $headers = ['Content-Type' => 'application/json'];
@@ -110,6 +119,7 @@ final class MoondreamService implements CaptionService
 
         $payload = [
             'image_url' => $base64Image,
+            'prompt' => $prompt,
         ] + $this->options;
 
         $response = $client->withHeaders($headers)->post($this->endpoint, $payload);

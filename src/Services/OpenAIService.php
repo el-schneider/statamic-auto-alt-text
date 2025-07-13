@@ -8,6 +8,7 @@ use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Events\AfterCaptionGeneration;
 use ElSchneider\StatamicAutoAltText\Events\BeforeCaptionGeneration;
 use ElSchneider\StatamicAutoAltText\Exceptions\CaptionGenerationException;
+use ElSchneider\StatamicAutoAltText\Services\Concerns\ParsesPrompts;
 use Illuminate\Http\Client\Factory as HttpClient;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,8 @@ use Throwable;
 
 final class OpenAIService implements CaptionService
 {
+    use ParsesPrompts;
+
     private const TARGET_FORMAT = 'webp';
 
     private HttpClient $http;
@@ -72,6 +75,11 @@ final class OpenAIService implements CaptionService
                 return null;
             }
 
+            // Parse prompt with Antlers templating
+            $parsedPrompt = $this->parsePrompt($this->prompt, $asset);
+
+            Log::info("Parsed prompt: {$parsedPrompt}");
+
             $response = $this->http->withToken($this->apiKey)
                 ->timeout(60)
                 ->post($this->endpoint, [
@@ -86,7 +94,7 @@ final class OpenAIService implements CaptionService
                             'content' => [
                                 [
                                     'type' => 'text',
-                                    'text' => $this->prompt,
+                                    'text' => $parsedPrompt,
                                 ],
                                 [
                                     'type' => 'image_url',
