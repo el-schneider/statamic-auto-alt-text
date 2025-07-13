@@ -21,11 +21,23 @@ return [
     |
     | Configuration options for the available caption services.
     |
+    | Prompts support Antlers templating with asset data:
+    | - {{ filename }} - Original filename
+    | - {{ basename }} - Filename without extension
+    | - {{ extension }} - File extension
+    | - {{ width }}, {{ height }} - Image dimensions
+    | - {{ orientation }} - 'portrait', 'landscape', or 'square'
+    | - {{ container }} - Asset container handle
+    | - {{ asset:custom_field }} - Access custom asset fields
+    |
+    | Example: "Describe this {{ orientation }} image.{{ if filename != asset.id }} Filename: {{ filename }}.{{ /if }}"
+    |
     */
     'services' => [
         'moondream' => [
             'endpoint' => env('MOONDREAM_ENDPOINT', 'https://api.moondream.ai/v1/caption'),
             'api_key' => env('MOONDREAM_API_KEY'),
+            'prompt' => env('MOONDREAM_PROMPT', 'Create alt text for this image.{{ if filename && filename != asset.id }} The filename is "{{ filename }}".{{ /if }}'),
             'options' => [
                 'length' => 'short',
                 'stream' => false,
@@ -35,8 +47,8 @@ return [
             'api_key' => env('OPENAI_API_KEY'),
             'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'), // Or 'gpt-4o' or other vision models
             'endpoint' => env('OPENAI_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
-            'system_message' => env('OPENAI_SYSTEM_MESSAGE', 'You are an accessibility expert generating concise, descriptive alt text for images. Focus on the most important visual elements that convey meaning and context. Keep descriptions brief but informative for screen readers.'),
-            'prompt' => env('OPENAI_PROMPT', 'Describe this image for accessibility alt text.'),
+            'system_message' => env('OPENAI_SYSTEM_MESSAGE', 'You are an accessibility expert generating concise, descriptive alt text for images. Focus on the most important visual elements that convey meaning and context. Keep descriptions brief but informative for screen readers. Please reply with the alt text only, no introduction or explanations.'),
+            'prompt' => env('OPENAI_PROMPT', 'Describe this image for accessibility alt text.{{ if filename && filename != asset.id }} The original filename is "{{ filename }}".{{ /if }}'),
             'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 100),
             'detail' => env('OPENAI_DETAIL', 'auto'), // 'low', 'high', or 'auto'
         ],
