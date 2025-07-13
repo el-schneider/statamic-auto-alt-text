@@ -28,6 +28,8 @@ final class OpenAIService implements CaptionService
 
     private string $endpoint;
 
+    private string $systemMessage;
+
     private string $prompt;
 
     private int $maxTokens;
@@ -41,7 +43,8 @@ final class OpenAIService implements CaptionService
         $this->apiKey = $config['api_key'] ?? '';
         $this->model = $config['model'] ?? 'gpt-4-turbo';
         $this->endpoint = $config['endpoint'] ?? 'https://api.openai.com/v1/chat/completions';
-        $this->prompt = $config['prompt'] ?? 'Describe this image concisely for accessibility alt text.';
+        $this->systemMessage = $config['system_message'] ?? 'You are an accessibility expert generating concise, descriptive alt text for images. Focus on the most important visual elements that convey meaning and context. Keep descriptions brief but informative for screen readers.';
+        $this->prompt = $config['prompt'] ?? 'Describe this image for accessibility alt text.';
         $this->maxTokens = $config['max_tokens'] ?? 100;
         $this->detail = $config['detail'] ?? 'auto';
 
@@ -74,6 +77,10 @@ final class OpenAIService implements CaptionService
                 ->post($this->endpoint, [
                     'model' => $this->model,
                     'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => $this->systemMessage,
+                        ],
                         [
                             'role' => 'user',
                             'content' => [
