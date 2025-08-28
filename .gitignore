@@ -6,3 +6,4 @@ composer.lock
 .cursorrules
 /docs
 .DS_Store
+@guides
