@@ -1,72 +1,18 @@
-import { type Axios } from 'axios'
+import './types'
+import { type FieldActionPayload, type TriggerAltTextResponse, type CheckAltTextResponse } from './types'
 
-declare global {
-    const Statamic: {
-        $app: {
-            config: {
-                globalProperties: {
-                    $axios: Axios
-                }
-            }
-        }
-        $toast: any
-        $fieldActions: any
-        $config: {
-            get: (key: string) => any
-        }
-        $progress: {
-            start: (name: string) => void
-            complete: (name: string) => void
-        }
-        booting: (callback: () => void) => void
-    }
-
-    function __(key: string, params?: Record<string, string | number>): string
-}
-
-// Status Constants
 const STATUS_READY = 'ready'
 const STATUS_PENDING = 'pending'
 const STATUS_NOT_FOUND = 'not_found'
 const STATUS_ERROR = 'error'
 
-// Polling configuration
 const POLLING_INTERVAL_MS = 1000
 const MAX_POLLING_ATTEMPTS = 15
 
-interface FieldActionContext {
-    handle: string
-    meta: Record<string, any>
-}
-
-interface RunActionParams extends FieldActionContext {
-    event: MouseEvent
-    field: any
-    value: any
-    meta: Record<string, any> & { asset?: any }
-    store: any // Vuex store instance
-    storeName: string
-    update: (newValue: any) => void
-    vm?: any
-}
-
-interface TriggerAltTextResponse {
-    success: boolean
-    message?: string
-}
-
-interface CheckAltTextResponse {
-    status: typeof STATUS_READY | typeof STATUS_PENDING | typeof STATUS_NOT_FOUND | typeof STATUS_ERROR
-    caption?: string
-    message?: string
-}
-
-// Helper function to determine if the context is related to assets based on URL
 function isAssetContextByURL(pathname: string): boolean {
     return pathname.includes('/assets/') || pathname.includes('/browse/')
 }
 
-// Helper function to extract asset path (container::path) from URL
 function extractAssetIdFromURL(pathname: string): string | null {
     // Matches an URL like /cp/assets/browse/{container}/{path}/edit
     const pathRegex = /^\/cp\/assets\/browse\/([^/]+)\/(.+?)(?:\/edit)?$/
@@ -79,7 +25,6 @@ function extractAssetIdFromURL(pathname: string): string | null {
     return null
 }
 
-// Helper function to trigger the API call
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
     try {
         const response = await Statamic.$app.config.globalProperties.$axios.post<TriggerAltTextResponse>(
@@ -97,7 +42,6 @@ async function triggerAltTextGeneration(assetPath: string, fieldHandle: string):
     }
 }
 
-// Helper function to poll the check endpoint
 async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promise<CheckAltTextResponse> {
     try {
         const response = await Statamic.$app.config.globalProperties.$axios.get<CheckAltTextResponse>(
@@ -117,75 +61,48 @@ async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promi
     }
 }
 
-// UI State Management Helpers
-function disableInteraction(vm: any): () => void {
-    const inputElement = vm?.$el?.querySelector('input, textarea') as HTMLInputElement | HTMLTextAreaElement | null
-
-    if (!inputElement) {
-        console.warn('Could not find input element to disable interaction.')
-        return () => {}
-    }
-
-    const originalReadOnlyState = inputElement.readOnly ?? false
-    inputElement.readOnly = true
-
-    // Return the cleanup function
-    return () => {
-        if (inputElement) {
-            // Restore original state
-            inputElement.readOnly = originalReadOnlyState
-        }
-    }
-}
-
-// Polling Logic
 async function pollForAltText(
     assetPath: string,
     handle: string,
     update: (newValue: any) => void,
-    cleanupCallback: () => void,
 ): Promise<void> {
     let pollingAttempts = 0
-    const pollingIntervalId = window.setInterval(async () => {
-        pollingAttempts++
-        console.log(`Polling attempt ${pollingAttempts} for ${assetPath}...`)
 
-        if (pollingAttempts > MAX_POLLING_ATTEMPTS) {
-            clearInterval(pollingIntervalId)
-            cleanupCallback()
-            console.error('Polling timeout exceeded for asset:', assetPath)
-            Statamic.$toast.error(__('auto-alt-text::messages.timeout'))
-            return
-        }
+    return new Promise((resolve, reject) => {
+        const pollingIntervalId = window.setInterval(async () => {
+            pollingAttempts++
+            console.log(`Polling attempt ${pollingAttempts} for ${assetPath}...`)
 
-        const checkResponse = await checkAltTextStatus(assetPath, handle)
+            if (pollingAttempts > MAX_POLLING_ATTEMPTS) {
+                clearInterval(pollingIntervalId)
+                reject(new Error(__('auto-alt-text::messages.timeout')))
+                return
+            }
 
-        switch (checkResponse.status) {
-            case STATUS_READY:
-                clearInterval(pollingIntervalId)
-                cleanupCallback()
-                console.log('Alt text ready:', checkResponse.caption)
-                Statamic.$toast.success(__('auto-alt-text::messages.success'))
-                update(checkResponse.caption)
-                break
-            case STATUS_PENDING:
-                // Continue polling
-                break
-            case STATUS_NOT_FOUND:
-                clearInterval(pollingIntervalId)
-                cleanupCallback()
-                console.error('Asset not found during polling:', assetPath)
-                Statamic.$toast.error(checkResponse.message || __('auto-alt-text::messages.asset_not_found'))
-                break
-            case STATUS_ERROR:
-            default:
-                clearInterval(pollingIntervalId)
-                cleanupCallback()
-                console.error('Error during polling:', checkResponse.message)
-                Statamic.$toast.error(checkResponse.message || __('auto-alt-text::messages.polling_error'))
-                break
-        }
-    }, POLLING_INTERVAL_MS)
+            const checkResponse = await checkAltTextStatus(assetPath, handle)
+
+            switch (checkResponse.status) {
+                case STATUS_READY:
+                    clearInterval(pollingIntervalId)
+                    console.log('Alt text ready:', checkResponse.caption)
+                    Statamic.$toast.success(__('auto-alt-text::messages.success'))
+                    update(checkResponse.caption)
+                    resolve()
+                    break
+                case STATUS_PENDING:
+                    break
+                case STATUS_NOT_FOUND:
+                    clearInterval(pollingIntervalId)
+                    reject(new Error(checkResponse.message || __('auto-alt-text::messages.asset_not_found')))
+                    break
+                case STATUS_ERROR:
+                default:
+                    clearInterval(pollingIntervalId)
+                    reject(new Error(checkResponse.message || __('auto-alt-text::messages.polling_error')))
+                    break
+            }
+        }, POLLING_INTERVAL_MS)
+    })
 }
 
 Statamic.booting(() => {
@@ -195,66 +112,44 @@ Statamic.booting(() => {
     const enabledFields: string[] = addonConfig.enabledFields || ['alt', 'alt_text', 'alternative_text']
     const actionTitle: string = __('auto-alt-text::messages.generate_alt_text_action')
 
-    // Register the action for the text fieldtype
     Statamic.$fieldActions.add('text-fieldtype', {
         title: actionTitle,
-        visible: ({ handle }: FieldActionContext): boolean => {
-            const currentPath = window.location.pathname
-            const isAssetContext = isAssetContextByURL(currentPath)
-
-            // Show only for configured field handles within an asset context
-            return isAssetContext && enabledFields.includes(handle)
+        icon: 'image',
+        visible: (payload: FieldActionPayload): boolean => {
+            const currentPath = window.location.pathname;
+            const isAssetContext = isAssetContextByURL(currentPath);
+            return isAssetContext && enabledFields.includes(payload.handle);
         },
+        run: async (payload: FieldActionPayload) => {
+            const { handle, update } = payload;
 
-        // Action execution logic
-        run: async ({ event, handle, meta, update, vm }: RunActionParams) => {
-            const enableInteraction = disableInteraction(vm)
+            const currentPath = window.location.pathname;
+            const assetId = extractAssetIdFromURL(currentPath);
 
-            // Start progress indicator
-            Statamic.$progress?.start('auto-alt-text-generation')
+            if (!assetId) {
+                Statamic.$toast.error(__('auto-alt-text::messages.cannot_determine_asset_path'));
+                return;
+            }
 
             try {
-                const currentPath = window.location.pathname
-                const assetPath = extractAssetIdFromURL(currentPath)
+                Statamic.$toast.info(__('auto-alt-text::messages.generation_started'));
 
-                if (!assetPath) {
-                    Statamic.$toast.error(__('auto-alt-text::messages.cannot_determine_asset_path'))
-                    enableInteraction()
-                    Statamic.$progress?.complete('auto-alt-text-generation')
-                    return
-                }
+                const triggerResponse = await triggerAltTextGeneration(assetId, handle);
 
-                console.log('Triggering alt text generation for:', assetPath, 'Field:', handle)
-
-                // Show immediate feedback optimistically
-                Statamic.$toast.info(__('auto-alt-text::messages.generation_started'))
-
-                // Trigger the generation process
-                const triggerResponse = await triggerAltTextGeneration(assetPath, handle)
-
-                // Handle trigger failure
                 if (!triggerResponse.success) {
-                    const errorMsg = triggerResponse.message || __('auto-alt-text::messages.trigger_failed')
-                    console.error('Trigger Error:', errorMsg)
-                    Statamic.$toast.error(errorMsg)
-                    enableInteraction()
-                    Statamic.$progress?.complete('auto-alt-text-generation')
-                    return
+                    const errorMsg = triggerResponse.message || __('auto-alt-text::messages.trigger_failed');
+                    Statamic.$toast.error(errorMsg);
+                    return;
                 }
 
-                // Start polling only on successful trigger
-                await pollForAltText(assetPath, handle, update, () => {
-                    enableInteraction()
-                    Statamic.$progress?.complete('auto-alt-text-generation')
-                })
+                // Start polling - progress is handled automatically by Promise
+                await pollForAltText(assetId, handle, update);
+
             } catch (error: any) {
-                // Catches errors primarily from extractAssetIdFromURL or unexpected issues
-                console.error('Error during alt text generation action setup:', error)
-                Statamic.$toast.error(error.message || __('auto-alt-text::messages.unexpected_error'))
-                enableInteraction() // Ensure UI is re-enabled on setup error
-                Statamic.$progress?.complete('auto-alt-text-generation')
+                console.error('Error during alt text generation:', error);
+                Statamic.$toast.error(error.message || __('auto-alt-text::messages.unexpected_error'));
             }
-        },
+        }
     })
 
     console.log('Statamic Auto Alt Text Field Action Registered for text-fieldtype.')
