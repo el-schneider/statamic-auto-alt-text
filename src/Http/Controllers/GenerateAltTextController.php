@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Statamic\Contracts\Assets\Asset as AssetContract;
 use Statamic\Contracts\Auth\User as UserContract;
@@ -40,7 +41,6 @@ final class GenerateAltTextController extends Controller
         /** @var ?UserContract $user */
         $user = Auth::user();
 
-        // Ensure user exists and can update the asset
         if (! $user || ! $user->can('edit', $asset)) {
             return response()->json([
                 'success' => false,
@@ -51,26 +51,29 @@ final class GenerateAltTextController extends Controller
         $field = $validated['field'] ?? config('statamic.auto-alt-text.alt_text_field', 'alt');
 
         try {
-            // Always dispatch the job
+            $currentValue = $asset->get($field);
+            $cacheKey = "alt_text_job_{$asset->id()}_{$field}";
+            $valueHash = md5($currentValue ?? '');
+
+            Cache::put($cacheKey, $valueHash, now()->addMinutes(5));
+
             GenerateAltTextJob::dispatch($asset, $field);
 
             return response()->json([
                 'success' => true,
-                'message' => __('auto-alt-text::messages.generation_queued'), // Use the existing queued message
+                'message' => __('auto-alt-text::messages.generation_queued'),
             ]);
 
         } catch (Exception $e) {
-            // Log unexpected errors during dispatching
             Log::error("Unexpected CP Alt Text Job Dispatch Error: {$e->getMessage()}", [
-                'asset_id' => $asset->id(), // Use id() which is definitely available
+                'asset_id' => $asset->id(),
                 'field' => $field,
                 'exception' => $e,
             ]);
 
-            // Inform the user that queuing failed
             return response()->json([
-                'success' => false, // Indicate failure to queue
-                'message' => __('auto-alt-text::messages.generation_queue_failed'), // Consider adding a specific message
+                'success' => false,
+                'message' => __('auto-alt-text::messages.generation_queue_failed'),
             ], 500);
         }
     }
@@ -92,16 +95,31 @@ final class GenerateAltTextController extends Controller
             return response()->json(['status' => 'not_found', 'message' => 'Asset not found.'], 404);
         }
 
-        // No need to re-check permissions here, assume the initial trigger was authorized.
-        // Fetch the *latest* data for the asset
-        // $asset = $asset->fresh();
         $altText = $asset->get($validated['field']);
 
         if (! empty($altText) && is_string($altText)) {
-            return response()->json([
-                'status' => 'ready',
-                'caption' => $altText,
-            ]);
+            $cacheKey = "alt_text_job_{$asset->id()}_{$validated['field']}";
+            $originalHash = Cache::get($cacheKey);
+
+            if ($originalHash === null) {
+                return response()->json([
+                    'status' => 'ready',
+                    'caption' => $altText,
+                ]);
+            }
+
+            $currentHash = md5($altText);
+
+            if ($currentHash !== $originalHash) {
+                Cache::forget($cacheKey);
+
+                return response()->json([
+                    'status' => 'ready',
+                    'caption' => $altText,
+                ]);
+            }
+
+            return response()->json(['status' => 'pending']);
         }
 
         return response()->json(['status' => 'pending']);
