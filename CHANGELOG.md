@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.1 - 2025-09-06
+
+### What's Changed
+
+#### Bug Fixes
+
+- Fixed issue with stale data when triggering job on asset with existing caption
+
+#### Maintenance
+
+- Updated gitignore configuration
+
+**Full Changelog**: https://github.com/el-schneider/statamic-auto-alt-text/compare/v0.5.0...v0.5.1
+
 ## v0.5.0 - 2025-07-13
 
 ### What's new
