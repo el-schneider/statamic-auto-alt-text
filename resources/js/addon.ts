@@ -2,11 +2,21 @@ import { type Axios } from 'axios'
 
 declare global {
     const Statamic: {
-        $axios: Axios
+        $app: {
+            config: {
+                globalProperties: {
+                    $axios: Axios
+                }
+            }
+        }
         $toast: any
         $fieldActions: any
         $config: {
             get: (key: string) => any
+        }
+        $progress: {
+            start: (name: string) => void
+            complete: (name: string) => void
         }
         booting: (callback: () => void) => void
     }
@@ -72,10 +82,13 @@ function extractAssetIdFromURL(pathname: string): string | null {
 // Helper function to trigger the API call
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
     try {
-        const response = await Statamic.$axios.post<TriggerAltTextResponse>('/cp/auto-alt-text/generate', {
-            asset_path: assetPath,
-            field: fieldHandle,
-        })
+        const response = await Statamic.$app.config.globalProperties.$axios.post<TriggerAltTextResponse>(
+            '/cp/auto-alt-text/generate',
+            {
+                asset_path: assetPath,
+                field: fieldHandle,
+            },
+        )
         return response.data
     } catch (error: any) {
         console.error('Alt text trigger request error:', error)
@@ -87,12 +100,15 @@ async function triggerAltTextGeneration(assetPath: string, fieldHandle: string):
 // Helper function to poll the check endpoint
 async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promise<CheckAltTextResponse> {
     try {
-        const response = await Statamic.$axios.get<CheckAltTextResponse>('/cp/auto-alt-text/check', {
-            params: {
-                asset_path: assetPath,
-                field: fieldHandle,
+        const response = await Statamic.$app.config.globalProperties.$axios.get<CheckAltTextResponse>(
+            '/cp/auto-alt-text/check',
+            {
+                params: {
+                    asset_path: assetPath,
+                    field: fieldHandle,
+                },
             },
-        })
+        )
         return response.data
     } catch (error: any) {
         console.error('Alt text check request error:', error)
@@ -194,6 +210,9 @@ Statamic.booting(() => {
         run: async ({ event, handle, meta, update, vm }: RunActionParams) => {
             const enableInteraction = disableInteraction(vm)
 
+            // Start progress indicator
+            Statamic.$progress?.start('auto-alt-text-generation')
+
             try {
                 const currentPath = window.location.pathname
                 const assetPath = extractAssetIdFromURL(currentPath)
@@ -201,6 +220,7 @@ Statamic.booting(() => {
                 if (!assetPath) {
                     Statamic.$toast.error(__('auto-alt-text::messages.cannot_determine_asset_path'))
                     enableInteraction()
+                    Statamic.$progress?.complete('auto-alt-text-generation')
                     return
                 }
 
@@ -218,16 +238,21 @@ Statamic.booting(() => {
                     console.error('Trigger Error:', errorMsg)
                     Statamic.$toast.error(errorMsg)
                     enableInteraction()
+                    Statamic.$progress?.complete('auto-alt-text-generation')
                     return
                 }
 
                 // Start polling only on successful trigger
-                await pollForAltText(assetPath, handle, update, enableInteraction)
+                await pollForAltText(assetPath, handle, update, () => {
+                    enableInteraction()
+                    Statamic.$progress?.complete('auto-alt-text-generation')
+                })
             } catch (error: any) {
                 // Catches errors primarily from extractAssetIdFromURL or unexpected issues
                 console.error('Error during alt text generation action setup:', error)
                 Statamic.$toast.error(error.message || __('auto-alt-text::messages.unexpected_error'))
                 enableInteraction() // Ensure UI is re-enabled on setup error
+                Statamic.$progress?.complete('auto-alt-text-generation')
             }
         },
     })
