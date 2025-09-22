@@ -45,12 +45,16 @@ return [
         ],
         'openai' => [
             'api_key' => env('OPENAI_API_KEY'),
-            'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'), // Or 'gpt-4o' or other vision models
             'endpoint' => env('OPENAI_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
             'system_message' => env('OPENAI_SYSTEM_MESSAGE', 'You are an accessibility expert generating concise, descriptive alt text for images. Focus on the most important visual elements that convey meaning and context. Keep descriptions brief but informative for screen readers. Please reply with the alt text only, no introduction or explanations.'),
             'prompt' => env('OPENAI_PROMPT', 'Describe this image for accessibility alt text.{{ if filename && filename != asset.id }} The original filename is "{{ filename }}".{{ /if }}'),
-            'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 100),
-            'detail' => env('OPENAI_DETAIL', 'auto'), // 'low', 'high', or 'auto'
+            'detail' => env('OPENAI_DETAIL', 'auto'),
+            'params' => [
+                'model' => env('OPENAI_MODEL', 'gpt-4.1'),
+                'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 100),
+                // 'temperature' => 0.7,
+                // 'max_completion_tokens' => 500,  // For reasoning models, like gpt-5, o1, o3
+            ],
         ],
     ],
 
