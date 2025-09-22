@@ -7,7 +7,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "ElSchneider\\StatamicAutoAltText\\Tests\\": "tests"
+            "Tests\\": "tests"
         }
     },
     "require": {
@@ -15,11 +15,13 @@
     },
     "require-dev": {
         "orchestra/testbench": "^9.0",
-        "laravel/pint": "^1.22"
+        "laravel/pint": "^1.22",
+        "pestphp/pest": "^4.1"
     },
     "config": {
         "allow-plugins": {
-            "pixelfear/composer-dist-plugin": true
+            "pixelfear/composer-dist-plugin": true,
+            "pestphp/pest-plugin": true
         }
     },
     "extra": {
