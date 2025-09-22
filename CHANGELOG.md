@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.2 - 2025-09-22
+
+### What's new
+
+- Add `params` config option to support reasoning models and enhance versatility
+
+This release adds support for configurable parameters in OpenAI API calls, designed to work with reasoning models like OpenAI's o1 and gpt-5 series that require setting `max_completion_tokens` instead of `max_tokens`.
+
+**Full Changelog**: https://github.com/el-schneider/statamic-auto-alt-text/compare/v0.5.1...v0.5.2
+
 ## v0.5.1 - 2025-09-06
 
 ### What's Changed
