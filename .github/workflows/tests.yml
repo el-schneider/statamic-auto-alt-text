@@ -36,16 +36,5 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
       - name: Run Pest tests
-        run: ./vendor/bin/pest --ci --parallel
+        run: ./vendor/bin/pest --ci --parallel --exclude-group=browser

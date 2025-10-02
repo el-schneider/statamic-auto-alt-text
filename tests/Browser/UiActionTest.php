@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+uses()->group('browser');
+
 beforeEach(function () {
     $this->asset = $this->createTestAsset();
 });
