@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Exception;
 use Illuminate\Support\Facades\Storage;
 use Statamic\Assets\Asset;
 use Statamic\Assets\AssetContainer as AssetContainerModel;
@@ -56,16 +57,16 @@ trait StatamicTestHelpers
         $disk->put($filename, 'fake image content');
 
         // Verify file was actually written
-        if (!$disk->exists($filename)) {
-            throw new \Exception("Failed to create file on disk: {$filename}");
+        if (! $disk->exists($filename)) {
+            throw new Exception("Failed to create file on disk: {$filename}");
         }
 
         // Now create asset after file exists
         $this->testAsset = $container->makeAsset($filename);
 
         // Verify file exists before setting data
-        if (!$this->testAsset->exists()) {
-            throw new \Exception("Asset file was not created properly: {$filename}");
+        if (! $this->testAsset->exists()) {
+            throw new Exception("Asset file was not created properly: {$filename}");
         }
 
         $this->testAsset->data([
