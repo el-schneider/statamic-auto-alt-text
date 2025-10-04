@@ -8,3 +8,5 @@ composer.lock
 .DS_Store
 @guides
 resources/dist/hot
+tests/Browser/Screenshots
+tests/__fixtures__
