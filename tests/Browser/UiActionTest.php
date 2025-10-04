@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use ElSchneider\StatamicAutoAltText\Jobs\GenerateAltTextJob;
+use Illuminate\Support\Facades\Queue;
+
 uses()->group('browser');
 
 beforeEach(function () {
@@ -9,17 +12,27 @@ beforeEach(function () {
 });
 
 it('displays generate alt text action on asset editor', function () {
+    Queue::fake();
+
     $url = "/cp/assets/browse/{$this->asset->containerHandle()}/";
 
     visit($url)
         ->click("[aria-label$='{$this->asset->basename()}']")
-        ->assertSee('Generate Alt Text');
+        ->click('Generate Alt Text')
+        ->click('Run action');
+
+    Queue::assertPushed(GenerateAltTextJob::class);
 });
 
 it('display field action on edit page', function () {
+    Queue::fake();
+
     $url = "/cp/assets/browse/{$this->asset->containerHandle()}/{$this->asset->basename()}/edit";
 
     visit($url)
         ->click('.quick-list button')
-        ->assertSee('Generate Alt Text');
+        ->click('Generate Alt Text')
+        ->assertSee('Generation started');
+
+    Queue::assertPushed(GenerateAltTextJob::class);
 });
