@@ -22,18 +22,25 @@ abstract class BrowserTestCase extends TestCase
         $addonRoot = dirname(__DIR__);
         $testbenchPublic = public_path();
 
-        // Create vendor/statamic/cp directory in testbench public
+        // Setup Statamic CP assets
         $vendorStatamicDir = $testbenchPublic.'/vendor/statamic/cp';
         if (! is_dir($vendorStatamicDir)) {
             mkdir($vendorStatamicDir, 0755, true);
         }
 
-        $buildSource = $addonRoot.'/vendor/statamic/cms/resources/dist/build';
+        $statamicBuildSource = $addonRoot.'/vendor/statamic/cms/resources/dist/build';
+        $statamicBuildDestination = $vendorStatamicDir.'/build';
 
-        // Symlink Statamic CP build
-        $buildSymlink = $vendorStatamicDir.'/build';
-        if (! file_exists($buildSymlink) && is_dir($buildSource)) {
-            symlink($buildSource, $buildSymlink);
+        if (! file_exists($statamicBuildDestination) && is_dir($statamicBuildSource)) {
+            symlink($statamicBuildSource, $statamicBuildDestination);
+        }
+
+        // Setup addon assets
+        $addonAssetsSource = $addonRoot.'/resources/dist';
+        $addonAssetsDestination = $testbenchPublic.'/vendor/statamic-auto-alt-text';
+
+        if (! file_exists($addonAssetsDestination) && is_dir($addonAssetsSource)) {
+            symlink($addonAssetsSource, $addonAssetsDestination);
         }
     }
 }
