@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.5.3 - 2025-10-05
+
+### What's new
+
+- Add comprehensive testing infrastructure with Pest 4
+- Add GitHub Actions CI workflow for automated testing
+- Add browser tests for UI interactions
+- Add feature tests for asset event handling
+
+### What's fixed
+
+- Remove parallel processing to improve reliability
+- Save assets quietly to prevent premature alt text generation
+- Improve OpenAI service parameter handling (which should have been included in v0.5.2)
+
+**Full Changelog**: https://github.com/el-schneider/statamic-auto-alt-text/compare/v0.5.2...v0.5.3
+
 ## v0.5.2 - 2025-09-22
 
 ### What's new
