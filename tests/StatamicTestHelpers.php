@@ -82,7 +82,9 @@ trait StatamicTestHelpers
         $this->testAsset->data([
             'alt' => null, // Ensure alt text is null so our action appears
         ]);
-        $this->testAsset->save();
+
+        // this prevents instantly triggering the alt text generation
+        $this->testAsset->saveQuietly();
 
         return $this->testAsset;
     }
