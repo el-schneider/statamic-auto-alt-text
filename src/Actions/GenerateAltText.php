@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace ElSchneider\StatamicAutoAltText\Actions;
 
+use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Services\AssetExclusionService;
-use ElSchneider\StatamicAutoAltText\Services\CaptionServiceFactory;
 use Illuminate\Support\Str;
 use Statamic\Assets\Asset;
 
 final class GenerateAltText
 {
     public function __construct(
-        private readonly CaptionServiceFactory $serviceFactory,
+        private readonly CaptionService $captionService,
         private readonly AssetExclusionService $exclusionService
     ) {}
 
@@ -26,8 +26,7 @@ final class GenerateAltText
             return null;
         }
 
-        $service = $this->serviceFactory->make();
-        $caption = $service->generateCaption($asset);
+        $caption = $this->captionService->generateCaption($asset);
 
         if ($caption) {
             $caption = $this->sanitizeCaption($caption);

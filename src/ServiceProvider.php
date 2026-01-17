@@ -9,8 +9,8 @@ use ElSchneider\StatamicAutoAltText\Contracts\CaptionService;
 use ElSchneider\StatamicAutoAltText\Facades\AutoAltText as AutoAltTextFacade;
 use ElSchneider\StatamicAutoAltText\Listeners\HandleAssetEvent;
 use ElSchneider\StatamicAutoAltText\Services\AssetExclusionService;
-use ElSchneider\StatamicAutoAltText\Services\CaptionServiceFactory;
 use ElSchneider\StatamicAutoAltText\Services\ImageProcessor;
+use ElSchneider\StatamicAutoAltText\Services\PrismCaptionService;
 use ElSchneider\StatamicAutoAltText\StatamicActions\GenerateAltTextAction as StatamicGenerateAltTextAction;
 use Illuminate\Support\Facades\Event;
 use Statamic\Providers\AddonServiceProvider;
@@ -67,11 +67,13 @@ final class ServiceProvider extends AddonServiceProvider
     private function registerServices(): void
     {
         $this->app->singleton(ImageProcessor::class);
-        $this->app->singleton(CaptionServiceFactory::class);
         $this->app->singleton(AssetExclusionService::class);
 
-        $this->app->singleton(CaptionService::class, function ($app) {
-            return $app->make(CaptionServiceFactory::class)->make();
+        $this->app->bind(CaptionService::class, function ($app) {
+            return new PrismCaptionService(
+                $app->make(ImageProcessor::class),
+                config('statamic.auto-alt-text'),
+            );
         });
     }
 

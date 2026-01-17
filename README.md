@@ -2,13 +2,13 @@
 
 # Statamic Auto Alt Text
 
-> Automatically generate descriptive alt text for images in Statamic v5 using AI services (Moondream or OpenAI GPT-4 Vision)
+> Automatically generate descriptive alt text for images in Statamic v5 using AI services via [Prism PHP](https://github.com/prism-php/prism)
 
 ## Features
 
 - **Automatic Generation:** Generate alt text for assets using AI by listening for Statamic asset events
-- **Multiple AI Providers:** Support for Moondream (cloud or self-hosted) and OpenAI (GPT-4 Vision)
-- **Data Privacy:** Option to use local Moondream endpoints, keeping image data within your infrastructure
+- **Multiple AI Providers:** Support for OpenAI, Anthropic, Ollama, Mistral, Groq, DeepSeek, and xAI via Prism PHP
+- **Data Privacy:** Option to use local Ollama endpoints, keeping image data within your infrastructure
 - **Asset Filtering:** Exclude sensitive or private assets from processing with global patterns, container-specific rules, or individual asset settings
 - **Control Panel Integration:** Field Action to generate alt text for individual images
 - **Bulk Processing:** Artisan Command for processing images individually or in batch
@@ -27,24 +27,41 @@ php artisan vendor:publish --tag="statamic-auto-alt-text-config"
 
 ## Configuration
 
-By default, the addon uses the `moondream` service with the cloud API. Set your API key in your `.env` file:
+Configure your AI provider in `.env`:
 
 ```dotenv
-MOONDREAM_API_KEY=your_api_key_here
+# Model format: provider/model-name
+AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
+# API key (managed by Prism - see config/prism.php)
+OPENAI_API_KEY=your_api_key_here
 ```
 
-Refer to the published configuration file (`config/statamic/auto-alt-text.php`) for additional options, including switching between services.
+### Supported Providers
+
+| Provider | Example Model | Environment Variable |
+|----------|--------------|---------------------|
+| OpenAI | `openai/gpt-4.1` | `OPENAI_API_KEY` |
+| Anthropic | `anthropic/claude-sonnet-4-5` | `ANTHROPIC_API_KEY` |
+| Ollama | `ollama/llava` | (local, no key needed) |
+| Mistral | `mistral/pixtral-large-latest` | `MISTRAL_API_KEY` |
+| Groq | `groq/llava-v1.5-7b-4096-preview` | `GROQ_API_KEY` |
+| DeepSeek | `deepseek/deepseek-chat` | `DEEPSEEK_API_KEY` |
+| xAI | `xai/grok-vision-beta` | `XAI_API_KEY` |
+
+For advanced provider configuration (custom endpoints, timeouts, etc.), publish Prism's config:
+
+```bash
+php artisan vendor:publish --tag="prism-config"
+```
 
 ### Non-English Captions
 
-#### Moondream
-Currently, Moondream only supports English language captions. If you need captions in other languages, consider using the OpenAI service instead.
-
-#### OpenAI
-OpenAI supports multiple languages. You can customize the prompt to generate captions in your preferred language by setting the `OPENAI_PROMPT` environment variable:
+You can customize the prompt to generate captions in your preferred language:
 
 ```dotenv
-OPENAI_PROMPT="Beschreibe dieses Bild kurz und bündig, um einen Alternativtext für Barrierefreiheit bereitzustellen. Bitte antworte ausschließlich mit dem Alt-Text, keine Einleitung oder Erläuterungen."
+AUTO_ALT_TEXT_PROMPT="Beschreibe dieses Bild kurz und bündig, um einen Alternativtext für Barrierefreiheit bereitzustellen."
+AUTO_ALT_TEXT_SYSTEM_MESSAGE="Du bist ein Barrierefreiheitsexperte, der kurze, beschreibende Alt-Texte für Bilder generiert. Antworte nur mit dem Alt-Text, ohne Einleitung oder Erklärungen."
 ```
 
 ## Usage
@@ -57,15 +74,11 @@ The addon listens for configured Statamic events (default: `AssetUploaded` and `
 
 Optionally customize the queue configuration:
 
-#### Optional: Defaults to your application's default queue connection
-
 ```dotenv
+# Optional: Defaults to your application's default queue connection
 AUTO_ALT_TEXT_QUEUE_CONNECTION=redis
-```
 
-#### Optional: Defaults to the default queue name for the connection
-
-```dotenv
+# Optional: Defaults to the default queue name for the connection
 AUTO_ALT_TEXT_QUEUE_NAME=alt_text_generation
 ```
 
@@ -83,20 +96,62 @@ php please auto-alt:generate
 
 See `php please auto-alt:generate --help` for options to specify containers, assets, and overwriting behavior
 
-### Using Local Moondream
+### Using Local Ollama
 
-For privacy or compliance reasons, you can run Moondream locally:
+For privacy or compliance reasons, you can run vision models locally with Ollama:
 
-1. **Set up Moondream:** Follow the [Quickstart guide](https://moondream.ai/c/docs/quickstart) to set up a local Moondream server
-2. **Configure the addon:** Update your `.env` file:
-#### Set your local server endpoint (default points to cloud API)
-
-```dotenv
-MOONDREAM_ENDPOINT=http://your-local-moondream-server:port/v1/caption
-```
-
-#### You may not need an API key for local setups (remove or leave empty if not required)
+1. **Set up Ollama:** Install [Ollama](https://ollama.ai) and pull a vision model: `ollama pull llava`
+2. **Configure the addon:**
 
 ```dotenv
-MOONDREAM_API_KEY=
+AUTO_ALT_TEXT_MODEL=ollama/llava
 ```
+
+3. **Configure Prism:** Publish Prism's config and set the Ollama endpoint:
+
+```bash
+php artisan vendor:publish --tag="prism-config"
+```
+
+Then update `config/prism.php`:
+
+```php
+'ollama' => [
+    'url' => env('OLLAMA_URL', 'http://localhost:11434'),
+],
+```
+
+## Generation Parameters
+
+Fine-tune the AI generation with these environment variables:
+
+```dotenv
+AUTO_ALT_TEXT_MAX_TOKENS=100      # Maximum length of generated text
+AUTO_ALT_TEXT_TEMPERATURE=0.7     # Creativity (0.0 = deterministic, 1.0 = creative)
+AUTO_ALT_TEXT_TIMEOUT=60          # Request timeout in seconds
+```
+
+## Upgrading from v0.x
+
+If upgrading from v0.x, update your environment variables:
+
+### Before (v0.x)
+
+```dotenv
+AUTO_ALT_TEXT_SERVICE=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4.1
+OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
+```
+
+### After (v1.x)
+
+```dotenv
+AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+OPENAI_API_KEY=sk-...
+```
+
+**Breaking changes:**
+- Moondream support has been removed (use Ollama with llava for local processing)
+- Config structure simplified: `services.openai.*` replaced with flat `model` setting
+- Environment variables changed: `AUTO_ALT_TEXT_MODEL` replaces `AUTO_ALT_TEXT_SERVICE`
