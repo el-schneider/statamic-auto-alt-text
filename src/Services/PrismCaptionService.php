@@ -40,28 +40,7 @@ final class PrismCaptionService implements CaptionService
         Event::dispatch(new BeforeCaptionGeneration($asset));
 
         try {
-            $base64DataUrl = $this->imageProcessor->processImageToBase64($asset, self::TARGET_FORMAT);
-
-            if (! $base64DataUrl) {
-                Log::warning("PrismCaptionService: Could not process image: {$asset->path()}");
-
-                return null;
-            }
-
-            $base64Content = $this->extractBase64Content($base64DataUrl);
-            $parsedPrompt = $this->parsePrompt($this->config['prompt'], $asset);
-            [$provider, $model] = $this->parseModel($this->config['model']);
-
-            $response = Prism::text()
-                ->using($provider, $model)
-                ->withSystemPrompt($this->config['system_message'])
-                ->withPrompt($parsedPrompt, [Image::fromBase64($base64Content)])
-                ->withMaxTokens($this->config['max_tokens'])
-                ->usingTemperature($this->config['temperature'])
-                ->withClientOptions(['timeout' => $this->config['timeout']])
-                ->asText();
-
-            $caption = $response->text;
+            $caption = $this->generateWithPrism($asset);
 
             if (empty($caption)) {
                 throw new CaptionGenerationException('AI returned an empty caption.');
@@ -82,11 +61,9 @@ final class PrismCaptionService implements CaptionService
             ]);
 
             throw new CaptionGenerationException("API error: {$e->getMessage()}", 0, $e);
-
         } catch (Throwable $e) {
             Log::error('PrismCaptionService: Generation failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
                 'asset_id' => $asset->id(),
             ]);
 
@@ -100,15 +77,46 @@ final class PrismCaptionService implements CaptionService
     }
 
     /**
+     * Generate caption using Prism API.
+     *
+     * @throws CaptionGenerationException
+     * @throws PrismException
+     */
+    private function generateWithPrism(Asset $asset): ?string
+    {
+        $base64DataUrl = $this->imageProcessor->processImageToBase64($asset, self::TARGET_FORMAT);
+
+        if (! $base64DataUrl) {
+            Log::warning("PrismCaptionService: Could not process image: {$asset->path()}");
+
+            return null;
+        }
+
+        [$provider, $model] = $this->parseModel($this->config['model']);
+
+        $response = Prism::text()
+            ->using($provider, $model)
+            ->withSystemPrompt($this->config['system_message'])
+            ->withPrompt(
+                $this->parsePrompt($this->config['prompt'], $asset),
+                [Image::fromBase64($this->extractBase64Content($base64DataUrl))]
+            )
+            ->withMaxTokens($this->config['max_tokens'])
+            ->usingTemperature($this->config['temperature'])
+            ->withClientOptions(['timeout' => $this->config['timeout']])
+            ->asText();
+
+        return $response->text;
+    }
+
+    /**
      * Extract base64 content from a data URL.
      */
     private function extractBase64Content(string $dataUrl): string
     {
-        if (preg_match('/^data:[^;]+;base64,(.+)$/', $dataUrl, $matches)) {
-            return $matches[1];
-        }
-
-        return $dataUrl;
+        return preg_match('/^data:[^;]+;base64,(.+)$/', $dataUrl, $matches)
+            ? $matches[1]
+            : $dataUrl;
     }
 
     /**
