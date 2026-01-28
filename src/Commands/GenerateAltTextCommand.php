@@ -22,13 +22,33 @@ final class GenerateAltTextCommand extends Command
     use RunsInPlease;
 
     protected $signature = 'statamic:auto-alt:generate
-                            {container? : The asset container handle to process}
-                            {--asset=* : Specific asset IDs or paths to process}
-                            {--overwrite-existing : Overwrite existing alt text}
-                            {--field= : The field to save alt text to (defaults to config)}
-                            {--dispatch-jobs : Dispatch jobs instead of processing synchronously}';
+                            {container? : Asset container handle (e.g. "assets"). If omitted, all containers are processed}
+                            {--asset=* : Asset ID or path to process. Repeatable (e.g. --asset=assets::hero.jpg --asset=assets::logo.png)}
+                            {--overwrite-existing : Regenerate alt text even if the field already has a value}
+                            {--field= : The field to save alt text to (defaults to the "alt_text_field" config value)}
+                            {--dispatch-jobs : Queue jobs for async processing instead of running synchronously}';
 
     protected $description = 'Generate alt text for image assets';
+
+    protected $help = <<<'HELP'
+        Process all image assets across all containers:
+          <info>php please auto-alt:generate</info>
+
+        Process only assets in a specific container:
+          <info>php please auto-alt:generate assets</info>
+
+        Process specific assets by ID (container::path):
+          <info>php please auto-alt:generate --asset=assets::images/hero.jpg</info>
+          <info>php please auto-alt:generate --asset=assets::images/hero.jpg --asset=assets::images/logo.png</info>
+
+        Overwrite existing alt text:
+          <info>php please auto-alt:generate assets --overwrite-existing</info>
+
+        Dispatch as queued jobs (requires a running queue worker):
+          <info>php please auto-alt:generate --dispatch-jobs</info>
+
+        Assets are filtered automatically: non-image assets, excluded assets (via config patterns), and assets that already have alt text are skipped.
+        HELP;
 
     public function __construct(
         private readonly GenerateAltText $generateAltText,
