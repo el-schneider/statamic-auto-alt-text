@@ -41,7 +41,11 @@ final class PrismCaptionService implements CaptionService
         try {
             $caption = $this->generateWithPrism($asset);
 
-            if (empty($caption)) {
+            if ($caption === null) {
+                return null;
+            }
+
+            if ($caption === '') {
                 throw new CaptionGenerationException('AI returned an empty caption.');
             }
 
