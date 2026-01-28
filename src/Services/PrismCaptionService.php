@@ -46,10 +46,6 @@ final class PrismCaptionService implements CaptionService
                 throw new CaptionGenerationException('AI returned an empty caption.');
             }
 
-            if (config('statamic.auto-alt-text.log_completions', false)) {
-                Log::info("PrismCaptionService: Generated caption for {$asset->id()}: {$caption}");
-            }
-
             Event::dispatch(new AfterCaptionGeneration($asset, $caption));
 
             return $caption;
@@ -93,18 +89,45 @@ final class PrismCaptionService implements CaptionService
         }
 
         [$provider, $model] = $this->parseModel($this->config['model']);
+        $parsedPrompt = $this->parsePrompt($this->config['prompt'], $asset);
+
+        if (config('statamic.auto-alt-text.log_completions')) {
+            Log::debug('PrismCaptionService: Sending request', [
+                'asset_id' => $asset->id(),
+                'provider' => $provider instanceof Provider ? $provider->name : $provider,
+                'model' => $model,
+                'system_message' => $this->config['system_message'],
+                'prompt' => $parsedPrompt,
+                'max_tokens' => $this->config['max_tokens'],
+                'temperature' => $this->config['temperature'],
+                'timeout' => $this->config['timeout'],
+            ]);
+        }
 
         $response = Prism::text()
             ->using($provider, $model)
             ->withSystemPrompt($this->config['system_message'])
             ->withPrompt(
-                $this->parsePrompt($this->config['prompt'], $asset),
+                $parsedPrompt,
                 [Image::fromBase64($this->extractBase64Content($base64DataUrl))]
             )
             ->withMaxTokens($this->config['max_tokens'])
             ->usingTemperature($this->config['temperature'])
             ->withClientOptions(['timeout' => $this->config['timeout']])
             ->asText();
+
+        if (config('statamic.auto-alt-text.log_completions')) {
+            Log::debug('PrismCaptionService: Received response', [
+                'asset_id' => $asset->id(),
+                'finish_reason' => $response->finishReason->name,
+                'caption' => $response->text,
+                'caption_length' => mb_strlen($response->text),
+                'prompt_tokens' => $response->usage->promptTokens,
+                'completion_tokens' => $response->usage->completionTokens,
+                'response_id' => $response->meta->id,
+                'response_model' => $response->meta->model,
+            ]);
+        }
 
         return $response->text;
     }
