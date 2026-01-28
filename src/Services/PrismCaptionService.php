@@ -11,7 +11,6 @@ use ElSchneider\StatamicAutoAltText\Exceptions\CaptionGenerationException;
 use ElSchneider\StatamicAutoAltText\Services\Concerns\ParsesPrompts;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
-use Prism\Prism\Enums\Provider;
 use Prism\Prism\Exceptions\PrismException;
 use Prism\Prism\Facades\Prism;
 use Prism\Prism\ValueObjects\Media\Image;
@@ -94,7 +93,7 @@ final class PrismCaptionService implements CaptionService
         if (config('statamic.auto-alt-text.log_completions')) {
             Log::debug('PrismCaptionService: Sending request', [
                 'asset_id' => $asset->id(),
-                'provider' => $provider instanceof Provider ? $provider->name : $provider,
+                'provider' => $provider,
                 'model' => $model,
                 'system_message' => $this->config['system_message'],
                 'prompt' => $parsedPrompt,
@@ -143,9 +142,9 @@ final class PrismCaptionService implements CaptionService
     }
 
     /**
-     * Parse "provider/model" format into Provider enum and model name.
+     * Parse "provider/model" format into provider and model strings.
      *
-     * @return array{0: Provider, 1: string}
+     * @return array{0: string, 1: string}
      */
     private function parseModel(string $model): array
     {
@@ -155,21 +154,6 @@ final class PrismCaptionService implements CaptionService
             );
         }
 
-        [$providerName, $modelName] = explode('/', $model, 2);
-
-        $provider = match ($providerName) {
-            'openai' => Provider::OpenAI,
-            'anthropic' => Provider::Anthropic,
-            'ollama' => Provider::Ollama,
-            'mistral' => Provider::Mistral,
-            'groq' => Provider::Groq,
-            'deepseek' => Provider::DeepSeek,
-            'xai' => Provider::XAI,
-            default => throw new CaptionGenerationException(
-                "Unsupported provider: '{$providerName}'. Supported: openai, anthropic, ollama, mistral, groq, deepseek, xai."
-            ),
-        };
-
-        return [$provider, $modelName];
+        return explode('/', $model, 2);
     }
 }

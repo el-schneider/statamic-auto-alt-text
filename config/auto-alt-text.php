@@ -10,14 +10,11 @@ return [
     |
     | The AI model to use for generating alt text, in "provider/model" format.
     |
-    | Supported providers: openai, anthropic, ollama, mistral, groq, deepseek, xai
-    |
     | Examples:
     | - openai/gpt-4.1 (default)
     | - anthropic/claude-sonnet-4-5
     | - ollama/llava
     | - mistral/pixtral-large-latest
-    | - groq/llava-v1.5-7b-4096-preview
     |
     | Configure API keys in config/prism.php (published via prism-php/prism).
     |

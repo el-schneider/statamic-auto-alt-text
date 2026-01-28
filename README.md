@@ -4,6 +4,23 @@
 
 > Automatically generate descriptive alt text for images in Statamic v5 using AI services via [Prism PHP](https://github.com/prism-php/prism)
 
+## ⚠️ Upgrading from v0.x?
+
+**Breaking Changes in v1.0:** Moondream support has been removed. If you were using Moondream, switch to [Ollama](https://ollama.ai) with a vision model like `llava` for local processing, or choose from 7+ cloud providers (OpenAI, Anthropic, etc.).
+
+**Migration is simple:** Replace your old config with the new `AUTO_ALT_TEXT_MODEL` format:
+
+```dotenv
+# Old (v0.x)
+AUTO_ALT_TEXT_SERVICE=openai
+OPENAI_MODEL=gpt-4.1
+
+# New (v1.x)
+AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+```
+
+See [Upgrading from v0.x](#upgrading-from-v0x) for full details.
+
 ## Features
 
 - **Automatic Generation:** Generate alt text for assets using AI by listening for Statamic asset events
@@ -48,6 +65,29 @@ OPENAI_API_KEY=your_api_key_here
 | Groq | `groq/llava-v1.5-7b-4096-preview` | `GROQ_API_KEY` |
 | DeepSeek | `deepseek/deepseek-chat` | `DEEPSEEK_API_KEY` |
 | xAI | `xai/grok-vision-beta` | `XAI_API_KEY` |
+
+### Custom Providers
+
+You can use any custom provider supported by Prism. First, register your custom provider in a service provider:
+
+```php
+use App\Prism\Providers\MyCustomProvider;
+
+public function boot(): void
+{
+    $this->app['prism-manager']->extend('my-provider', function ($app, $config) {
+        return new MyCustomProvider(apiKey: $config['api_key']);
+    });
+}
+```
+
+Then configure it in your `.env`:
+
+```dotenv
+AUTO_ALT_TEXT_MODEL=my-provider/model-name
+```
+
+See [Prism's Custom Providers documentation](https://prismphp.com/advanced/custom-providers.html) for details on building and registering custom providers.
 
 For advanced provider configuration (custom endpoints, timeouts, etc.), publish Prism's config:
 
