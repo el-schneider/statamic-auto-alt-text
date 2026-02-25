@@ -1,6 +1,6 @@
 import './types'
 import { type FieldActionPayload, type TriggerAltTextResponse, type CheckAltTextResponse } from './types'
-import { extractAssetIdFromURL, isAssetContextByURL, normalizeCpRoot } from './url-helpers'
+import { extractAssetIdFromURL, isAssetContextByURL } from './url-helpers'
 
 const STATUS_READY = 'ready'
 const STATUS_PENDING = 'pending'
@@ -12,7 +12,7 @@ const MAX_POLLING_ATTEMPTS = 15
 
 function getCpRoot(): string {
     // cpRoot is the path-only prefix (e.g. "/admin"), cpUrl includes the full origin
-    return normalizeCpRoot(Statamic.$config.get('cpRoot') || '/cp')
+    return Statamic.$config.get('cpRoot') || '/cp'
 }
 
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
