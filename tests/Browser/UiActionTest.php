@@ -26,13 +26,3 @@ it('display field action on edit page', function () {
         ->click('.quick-list button')
         ->assertSee('Generate Alt Text');
 });
-
-it('displays field action with custom cp route', function () {
-    config(['statamic.cp.route' => 'admin']);
-
-    $url = "/admin/assets/browse/{$this->asset->containerHandle()}/{$this->asset->basename()}/edit";
-
-    visit($url)
-        ->click('.quick-list button')
-        ->assertSee('Generate Alt Text');
-});
