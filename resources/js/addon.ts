@@ -1,5 +1,6 @@
 import './types'
 import { type FieldActionPayload, type TriggerAltTextResponse, type CheckAltTextResponse } from './types'
+import { extractAssetIdFromURL, isAssetContextByURL } from './url-helpers'
 
 const STATUS_READY = 'ready'
 const STATUS_PENDING = 'pending'
@@ -9,26 +10,8 @@ const STATUS_ERROR = 'error'
 const POLLING_INTERVAL_MS = 1000
 const MAX_POLLING_ATTEMPTS = 15
 
-function isAssetContextByURL(pathname: string): boolean {
-    return pathname.includes('/assets/') || pathname.includes('/browse/')
-}
-
 function getCpUrl(): string {
     return Statamic.$config.get('cpUrl') || '/cp'
-}
-
-function extractAssetIdFromURL(pathname: string): string | null {
-    // Matches an URL like /{cpUrl}/assets/browse/{container}/{path}/edit
-    const cpUrl = getCpUrl().replace(/\/$/, '')
-    const escapedCpUrl = cpUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const pathRegex = new RegExp(`^${escapedCpUrl}/assets/browse/([^/]+)/(.+?)(?:/edit)?$`)
-    const match = pathname.match(pathRegex)
-
-    if (match && match[1] && match[2]) {
-        return `${match[1]}::${match[2]}`
-    }
-    console.error('Could not determine Asset Container and Path from URL pattern:', pathname)
-    return null
 }
 
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
@@ -132,7 +115,7 @@ Statamic.booting(() => {
             const { handle, update } = payload;
 
             const currentPath = window.location.pathname;
-            const assetId = extractAssetIdFromURL(currentPath);
+            const assetId = extractAssetIdFromURL(currentPath, getCpUrl());
 
             if (!assetId) {
                 Statamic.$toast.error(__('auto-alt-text::messages.cannot_determine_asset_path'));
