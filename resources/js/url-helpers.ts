@@ -2,7 +2,7 @@
  * Extract asset container::path from a CP asset URL.
  *
  * @param pathname - The URL pathname (e.g. /admin/assets/browse/uploads/image.jpg/edit)
- * @param cpUrl - The CP route prefix (e.g. /admin, /cp)
+ * @param cpRoot - The CP route prefix path (e.g. /admin, /cp)
  */
 export function extractAssetIdFromURL(pathname: string, cpUrl: string = '/cp'): string | null {
     const normalizedCpUrl = cpUrl.replace(/\/$/, '')

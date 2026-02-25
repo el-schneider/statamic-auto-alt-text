@@ -10,13 +10,14 @@ const STATUS_ERROR = 'error'
 const POLLING_INTERVAL_MS = 1000
 const MAX_POLLING_ATTEMPTS = 15
 
-function getCpUrl(): string {
-    return Statamic.$config.get('cpUrl') || '/cp'
+function getCpRoot(): string {
+    // cpRoot is the path-only prefix (e.g. "/admin"), cpUrl includes the full origin
+    return Statamic.$config.get('cpRoot') || '/cp'
 }
 
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
     try {
-        const cpUrl = getCpUrl().replace(/\/$/, '')
+        const cpUrl = getCpRoot().replace(/\/$/, '')
         const response = await Statamic.$app.config.globalProperties.$axios.post<TriggerAltTextResponse>(
             `${cpUrl}/auto-alt-text/generate`,
             {
@@ -34,7 +35,7 @@ async function triggerAltTextGeneration(assetPath: string, fieldHandle: string):
 
 async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promise<CheckAltTextResponse> {
     try {
-        const cpUrl = getCpUrl().replace(/\/$/, '')
+        const cpUrl = getCpRoot().replace(/\/$/, '')
         const response = await Statamic.$app.config.globalProperties.$axios.get<CheckAltTextResponse>(
             `${cpUrl}/auto-alt-text/check`,
             {
@@ -115,7 +116,7 @@ Statamic.booting(() => {
             const { handle, update } = payload;
 
             const currentPath = window.location.pathname;
-            const assetId = extractAssetIdFromURL(currentPath, getCpUrl());
+            const assetId = extractAssetIdFromURL(currentPath, getCpRoot());
 
             if (!assetId) {
                 Statamic.$toast.error(__('auto-alt-text::messages.cannot_determine_asset_path'));
