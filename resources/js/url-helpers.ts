@@ -1,8 +1,5 @@
 /**
  * Extract asset container::path from a CP asset URL.
- *
- * @param pathname - The URL pathname (e.g. /admin/assets/browse/uploads/image.jpg/edit)
- * @param cpRoot - The CP route prefix path from Statamic.$config.get('cpRoot') (e.g. /admin, /cp)
  */
 export function extractAssetIdFromURL(pathname: string, cpRoot: string = '/cp'): string | null {
     const escapedCpRoot = cpRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

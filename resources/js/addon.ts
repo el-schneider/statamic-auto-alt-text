@@ -11,7 +11,6 @@ const POLLING_INTERVAL_MS = 1000
 const MAX_POLLING_ATTEMPTS = 15
 
 function getCpRoot(): string {
-    // cpRoot is the path-only prefix (e.g. "/admin"), cpUrl includes the full origin
     return Statamic.$config.get('cpRoot') || '/cp'
 }
 
@@ -134,7 +133,6 @@ Statamic.booting(() => {
                     return
                 }
 
-                // Start polling - progress is handled automatically by Promise
                 await pollForAltText(assetId, handle, update)
 
             } catch (error: any) {
