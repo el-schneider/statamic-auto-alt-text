@@ -7,24 +7,31 @@ use Illuminate\Support\Facades\Queue;
 beforeEach(function () {
     Queue::fake();
     $this->asset = $this->createTestAsset();
-    $this->loginUser();
+    $user = $this->createTestUser();
+    $this->actingAs($user);
 });
 
-it('trigger endpoint works with custom cp route', function () {
-    config(['statamic.cp.route' => 'admin']);
-
-    $this->post('/admin/auto-alt-text/generate', [
+it('trigger endpoint responds under default cp route', function () {
+    $this->post('/cp/auto-alt-text/generate', [
         'asset_path' => $this->asset->id(),
         'field' => 'alt',
     ])->assertOk()
         ->assertJson(['success' => true]);
 });
 
-it('check endpoint works with custom cp route', function () {
-    config(['statamic.cp.route' => 'admin']);
-
-    $this->get('/admin/auto-alt-text/check?'.http_build_query([
+it('check endpoint responds under default cp route', function () {
+    $this->get('/cp/auto-alt-text/check?'.http_build_query([
         'asset_path' => $this->asset->id(),
         'field' => 'alt',
-    ]))->assertOk();
+    ]))->assertOk()
+        ->assertJsonStructure(['status']);
+});
+
+it('trigger endpoint rejects unauthenticated requests', function () {
+    auth()->logout();
+
+    $this->post('/cp/auto-alt-text/generate', [
+        'asset_path' => $this->asset->id(),
+        'field' => 'alt',
+    ])->assertRedirect();
 });
