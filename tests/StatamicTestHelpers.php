@@ -34,11 +34,11 @@ trait StatamicTestHelpers
         return $this->testUser;
     }
 
-    protected function createAssetContainer(string $handle = 'test_assets', string $title = 'Test Assets'): AssetContainerModel
+    protected function createAssetContainer(string $handle = 'test_assets', string $title = 'Test Assets', string $disk = 'public'): AssetContainerModel
     {
         $this->testAssetContainer = AssetContainer::make($handle);
         $this->testAssetContainer->title($title);
-        $this->testAssetContainer->disk('public'); // Use 'public' disk instead of 'local'
+        $this->testAssetContainer->disk($disk);
         $this->testAssetContainer->save();
 
         return $this->testAssetContainer;

@@ -19,9 +19,21 @@ abstract class TestCase extends AddonTestCase
 
     protected string $addonServiceProvider = ServiceProvider::class;
 
+    protected function tearDown(): void
+    {
+        if (isset($this->fakeStacheDirectory) && is_string($this->fakeStacheDirectory)) {
+            app('files')->deleteDirectory($this->fakeStacheDirectory);
+            if (! is_dir($this->fakeStacheDirectory)) {
+                mkdir($this->fakeStacheDirectory, 0755, true);
+            }
+            touch($this->fakeStacheDirectory.'/.gitkeep');
+        }
+
+        parent::tearDown();
+    }
+
     protected function resolveApplicationConfiguration($app)
     {
-
         parent::resolveApplicationConfiguration($app);
 
         $app['config']->set('statamic.editions.pro', true);

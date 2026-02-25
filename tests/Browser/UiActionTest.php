@@ -5,6 +5,7 @@ declare(strict_types=1);
 uses()->group('browser');
 
 beforeEach(function () {
+    $this->createAssetContainer('test_assets', 'Test Assets', 'assets');
     $this->asset = $this->createTestAsset();
 });
 
