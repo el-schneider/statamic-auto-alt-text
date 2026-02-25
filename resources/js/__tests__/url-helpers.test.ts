@@ -1,5 +1,23 @@
 import { describe, it, expect } from 'vitest'
-import { extractAssetIdFromURL, isAssetContextByURL } from '../url-helpers'
+import { extractAssetIdFromURL, isAssetContextByURL, normalizeCpRoot } from '../url-helpers'
+
+describe('normalizeCpRoot', () => {
+    it('keeps standard CP roots unchanged', () => {
+        expect(normalizeCpRoot('/admin')).toBe('/admin')
+    })
+
+    it('removes trailing slashes', () => {
+        expect(normalizeCpRoot('/admin/')).toBe('/admin')
+    })
+
+    it('adds a leading slash when missing', () => {
+        expect(normalizeCpRoot('admin')).toBe('/admin')
+    })
+
+    it('normalizes root-level CP to empty prefix', () => {
+        expect(normalizeCpRoot('/')).toBe('')
+    })
+})
 
 describe('extractAssetIdFromURL', () => {
     it('extracts asset id with default /cp prefix', () => {
@@ -42,10 +60,18 @@ describe('extractAssetIdFromURL', () => {
 
 describe('isAssetContextByURL', () => {
     it('returns true for asset browse URLs', () => {
-        expect(isAssetContextByURL('/admin/assets/browse/uploads/file.webp/edit')).toBe(true)
+        expect(isAssetContextByURL('/admin/assets/browse/uploads/file.webp/edit', '/admin')).toBe(true)
     })
 
     it('returns false for non-asset URLs', () => {
-        expect(isAssetContextByURL('/admin/collections/pages')).toBe(false)
+        expect(isAssetContextByURL('/admin/collections/pages', '/admin')).toBe(false)
+    })
+
+    it('returns false for non-asset browse URLs inside CP', () => {
+        expect(isAssetContextByURL('/admin/collections/browse/pages', '/admin')).toBe(false)
+    })
+
+    it('supports root-level CP for asset browsing', () => {
+        expect(isAssetContextByURL('/assets/browse/uploads/file.webp/edit', '/')).toBe(true)
     })
 })
