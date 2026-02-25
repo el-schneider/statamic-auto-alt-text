@@ -13,9 +13,15 @@ function isAssetContextByURL(pathname: string): boolean {
     return pathname.includes('/assets/') || pathname.includes('/browse/')
 }
 
+function getCpUrl(): string {
+    return Statamic.$config.get('cpUrl') || '/cp'
+}
+
 function extractAssetIdFromURL(pathname: string): string | null {
-    // Matches an URL like /cp/assets/browse/{container}/{path}/edit
-    const pathRegex = /^\/cp\/assets\/browse\/([^/]+)\/(.+?)(?:\/edit)?$/
+    // Matches an URL like /{cpUrl}/assets/browse/{container}/{path}/edit
+    const cpUrl = getCpUrl().replace(/\/$/, '')
+    const escapedCpUrl = cpUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const pathRegex = new RegExp(`^${escapedCpUrl}/assets/browse/([^/]+)/(.+?)(?:/edit)?$`)
     const match = pathname.match(pathRegex)
 
     if (match && match[1] && match[2]) {
@@ -27,8 +33,9 @@ function extractAssetIdFromURL(pathname: string): string | null {
 
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
     try {
+        const cpUrl = getCpUrl().replace(/\/$/, '')
         const response = await Statamic.$app.config.globalProperties.$axios.post<TriggerAltTextResponse>(
-            '/cp/auto-alt-text/generate',
+            `${cpUrl}/auto-alt-text/generate`,
             {
                 asset_path: assetPath,
                 field: fieldHandle,
@@ -44,8 +51,9 @@ async function triggerAltTextGeneration(assetPath: string, fieldHandle: string):
 
 async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promise<CheckAltTextResponse> {
     try {
+        const cpUrl = getCpUrl().replace(/\/$/, '')
         const response = await Statamic.$app.config.globalProperties.$axios.get<CheckAltTextResponse>(
-            '/cp/auto-alt-text/check',
+            `${cpUrl}/auto-alt-text/check`,
             {
                 params: {
                     asset_path: assetPath,
