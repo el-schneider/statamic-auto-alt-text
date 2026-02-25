@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.1 - 2026-02-25
+
+### Fixed
+
+- Support custom CP route prefix (#4, #6) — the addon no longer hardcodes `/cp/` for URL matching and API calls, using `Statamic.$config.get('cpRoot')` instead
+- Updated browser test infrastructure and CI workflow
+- Added `orchestra/testbench ^10.0` compatibility
+- Added feature tests for trigger/check endpoints
+
 ## v2.0.0 - 2026-01-28
 
 ### Statamic v6 Support
@@ -41,11 +50,13 @@ OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4.1
 OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
+
 ```
 #### After (v2.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 ```
 API keys are configured in Prism's config (`config/prism.php`), which uses standard environment variables like `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.
@@ -54,6 +65,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 ```
 ### Version Support
@@ -100,11 +112,13 @@ OPENAI_MODEL=gpt-4.1
 OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
+
 ```
 #### After (v1.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 ```
@@ -114,6 +128,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 ```
