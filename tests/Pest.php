@@ -21,7 +21,7 @@ pest()->extend(Tests\BrowserTestCase::class)
     ->in('Browser');
 
 uses()->beforeEach(function () {
-    \Pest\Browser\Playwright\Playwright::setTimeout(15_000);
+    Pest\Browser\Playwright\Playwright::setTimeout(15_000);
 })->in('Browser');
 
 /*
