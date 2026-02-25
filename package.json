@@ -3,15 +3,13 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "build:publish": "npm run build && rm -rf ../../../public/vendor/statamic-auto-alt-text && php ../../../artisan vendor:publish --tag=statamic-auto-alt-text --force",
     "check": "npm run format:check && npm run pint:check",
     "dev": "vite",
     "fix": "npm run format:fix && npm run pint:fix",
     "format:check": "prettier --check .",
     "format:fix": "prettier --write .",
     "pint:check": "./vendor/bin/pint --test",
-    "pint:fix": "./vendor/bin/pint",
-    "test": "vitest run"
+    "pint:fix": "./vendor/bin/pint"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
