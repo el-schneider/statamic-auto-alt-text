@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.2 - 2026-02-27
+
+### Fixed
+
+- Add missing icon for "Generate Alt Text" action in asset browser dropdown (#7)
+
 ## v2.0.1 - 2026-02-25
 
 ### Fixed
