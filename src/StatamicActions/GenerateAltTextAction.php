@@ -13,6 +13,8 @@ use Statamic\Facades\Asset;
 
 final class GenerateAltTextAction extends Action
 {
+    protected $icon = 'ai-sparks';
+
     public function __construct(
         private readonly CaptionService $captionService,
         private readonly StatamicAutoAltText $autoAltText,
