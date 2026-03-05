@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2 - 2026-03-05
+
+### Fixed
+
+- Restored `statamic/cms: ^5.0` requirement — v1.0.1 incorrectly required `^6.0`, making it uninstallable on Statamic 5 projects (#9)
+
 ## v2.0.2 - 2026-02-27
 
 ### Fixed
@@ -67,11 +73,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v2.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -82,6 +90,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
@@ -132,11 +141,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v1.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -148,6 +159,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
