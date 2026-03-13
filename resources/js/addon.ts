@@ -103,7 +103,7 @@ Statamic.booting(() => {
     const enabledFields: string[] = addonConfig.enabledFields || ['alt', 'alt_text', 'alternative_text']
     const actionTitle: string = __('auto-alt-text::messages.generate_alt_text_action')
 
-    Statamic.$fieldActions.add('text-fieldtype', {
+    const fieldAction = {
         title: actionTitle,
         icon: 'image',
         visible: (payload: FieldActionPayload): boolean => {
@@ -140,7 +140,11 @@ Statamic.booting(() => {
                 Statamic.$toast.error(error.message || __('auto-alt-text::messages.unexpected_error'))
             }
         }
-    })
+    }
 
-    console.log('Statamic Auto Alt Text Field Action Registered for text-fieldtype.')
+    for (const fieldtype of ['text-fieldtype', 'textarea-fieldtype']) {
+        Statamic.$fieldActions.add(fieldtype, fieldAction)
+    }
+
+    console.log('Statamic Auto Alt Text Field Action Registered for text-fieldtype and textarea-fieldtype.')
 })
