@@ -105,6 +105,7 @@ final class ServiceProvider extends AddonServiceProvider
         Statamic::provideToScript([
             'autoAltText' => [
                 'enabledFields' => config('statamic.auto-alt-text.action_enabled_fields', ['alt', 'alt_text', 'alternative_text']),
+                'timeout' => config('statamic.auto-alt-text.timeout', 60),
             ],
         ]);
     }
