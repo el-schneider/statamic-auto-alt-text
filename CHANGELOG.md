@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.0.3 - 2026-03-13
+
+### Fixed
+
+- Fix premature "Alt text generation timed out" toasts (#12) — the JavaScript frontend now derives its polling duration from the PHP `timeout` config instead of using a hardcoded 15-second limit
+- Set queue job timeout to match the configured API timeout plus buffer, preventing the queue worker from killing jobs before the AI provider responds
+- Propagate job failure details back to the polling endpoint — users now see the actual error message (e.g. "API error: connection timed out") instead of a generic timeout toast
+
 ## v1.0.2 - 2026-03-05
 
 ### Fixed
