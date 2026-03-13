@@ -95,6 +95,18 @@ final class GenerateAltTextController extends Controller
             return response()->json(['status' => 'not_found', 'message' => 'Asset not found.'], 404);
         }
 
+        $errorKey = "alt_text_error_{$asset->id()}_{$validated['field']}";
+        $error = Cache::get($errorKey);
+
+        if ($error) {
+            Cache::forget($errorKey);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $error,
+            ]);
+        }
+
         $altText = $asset->get($validated['field']);
 
         if (! empty($altText) && is_string($altText)) {
