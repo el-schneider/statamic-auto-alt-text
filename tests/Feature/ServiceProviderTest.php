@@ -22,12 +22,9 @@ it('exposes timeout to frontend script data', function () {
 it('exposes custom timeout to frontend script data', function () {
     config(['statamic.auto-alt-text.timeout' => 120]);
 
-    Statamic::provideToScript([
-        'autoAltText' => [
-            'enabledFields' => config('statamic.auto-alt-text.action_enabled_fields', ['alt', 'alt_text', 'alternative_text']),
-            'timeout' => config('statamic.auto-alt-text.timeout', 60),
-        ],
-    ]);
+    // Re-boot the service provider so it re-registers script data with the new config
+    $provider = app()->getProvider(ElSchneider\StatamicAutoAltText\ServiceProvider::class);
+    $provider->boot();
 
     $jsonVars = Statamic::jsonVariables(Request::create('/'));
 
