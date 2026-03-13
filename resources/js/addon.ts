@@ -8,7 +8,7 @@ const STATUS_NOT_FOUND = 'not_found'
 const STATUS_ERROR = 'error'
 
 const POLLING_INTERVAL_MS = 1000
-const MAX_POLLING_ATTEMPTS = 15
+const POLLING_BUFFER_SECONDS = 5
 
 function getCpRoot(): string {
     return Statamic.$config.get('cpRoot') || '/cp'
@@ -52,19 +52,27 @@ async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promi
     }
 }
 
+function getMaxPollingAttempts(): number {
+    const addonConfig = Statamic.$config.get('autoAltText') || {}
+    const timeoutSeconds: number = addonConfig.timeout ?? 60
+
+    return Math.ceil((timeoutSeconds + POLLING_BUFFER_SECONDS) / (POLLING_INTERVAL_MS / 1000))
+}
+
 async function pollForAltText(
     assetPath: string,
     handle: string,
     update: (newValue: any) => void,
 ): Promise<void> {
     let pollingAttempts = 0
+    const maxAttempts = getMaxPollingAttempts()
 
     return new Promise((resolve, reject) => {
         const pollingIntervalId = window.setInterval(async () => {
             pollingAttempts++
-            console.log(`Polling attempt ${pollingAttempts} for ${assetPath}...`)
+            console.log(`Polling attempt ${pollingAttempts}/${maxAttempts} for ${assetPath}...`)
 
-            if (pollingAttempts > MAX_POLLING_ATTEMPTS) {
+            if (pollingAttempts > maxAttempts) {
                 clearInterval(pollingIntervalId)
                 reject(new Error(__('auto-alt-text::messages.timeout')))
                 return
