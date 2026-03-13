@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.0.3 - 2026-03-13
+
+### Fixed
+
+- Fix premature "Alt text generation timed out" toasts (#12) — the JavaScript frontend now derives its polling duration from the PHP timeout config instead of using a hardcoded 15-second limit
+- Set queue job timeout to match the configured API timeout plus buffer, preventing the queue worker from killing jobs before the AI provider responds
+- Propagate job failure details back to the polling endpoint — users now see the actual error message instead of a generic timeout toast
+
+Backport of the v2.0.3 fix for Statamic 5 users.
+
 ## v2.0.3 - 2026-03-13
 
 ### Fixed
@@ -82,11 +92,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v2.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -98,6 +110,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
@@ -150,11 +163,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v1.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -167,6 +182,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
