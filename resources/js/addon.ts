@@ -15,7 +15,13 @@ function getCpRoot(): string {
 }
 
 function getAxios() {
-    return Statamic.$axios || Statamic.$app.$axios
+    const axios = Statamic.$axios || Statamic.$app?.$axios
+
+    if (!axios) {
+        throw new Error('No Axios instance found on Statamic.$axios or Statamic.$app.$axios')
+    }
+
+    return axios
 }
 
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
@@ -144,7 +150,7 @@ Statamic.booting(() => {
     }
 
     for (const fieldtype of ['text-fieldtype', 'textarea-fieldtype']) {
-        Statamic.$fieldActions.add(fieldtype, fieldAction)
+        Statamic.$fieldActions.add(fieldtype, { ...fieldAction })
     }
 
     console.log('Statamic Auto Alt Text Field Action Registered for text-fieldtype and textarea-fieldtype.')
