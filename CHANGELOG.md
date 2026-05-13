@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.4 - 2026-05-13
+
+### Fixed
+
+- Add control panel field action support for `textarea` fields in Statamic 5, so asset alt text fields configured as textareas can trigger AI generation (#15). Thanks @helloDanuk for the original contribution.
+- Use a Statamic 5-compatible Axios lookup for the generate/check requests, with a clearer error if no Axios instance is available.
+
 ## v2.0.4 - 2026-05-13
 
 ### Added
@@ -105,11 +112,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v2.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -123,6 +132,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
@@ -179,11 +189,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v1.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -198,6 +210,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
