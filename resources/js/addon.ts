@@ -1,5 +1,5 @@
 import './types'
-import { type FieldActionPayload, type TriggerAltTextResponse, type CheckAltTextResponse } from './types'
+import { type CheckAltTextResponse, type FieldActionPayload, type TriggerAltTextResponse } from './types'
 import { extractAssetIdFromURL, isAssetContextByURL } from './url-helpers'
 
 const STATUS_READY = 'ready'
@@ -14,16 +14,23 @@ function getCpRoot(): string {
     return Statamic.$config.get('cpRoot') || '/cp'
 }
 
+function getAxios() {
+    const axios = Statamic.$axios || Statamic.$app?.$axios
+
+    if (!axios) {
+        throw new Error('No Axios instance found on Statamic.$axios or Statamic.$app.$axios')
+    }
+
+    return axios
+}
+
 async function triggerAltTextGeneration(assetPath: string, fieldHandle: string): Promise<TriggerAltTextResponse> {
     try {
         const cpRoot = getCpRoot()
-        const response = await Statamic.$app.config.globalProperties.$axios.post<TriggerAltTextResponse>(
-            `${cpRoot}/auto-alt-text/generate`,
-            {
-                asset_path: assetPath,
-                field: fieldHandle,
-            },
-        )
+        const response = await getAxios().post<TriggerAltTextResponse>(`${cpRoot}/auto-alt-text/generate`, {
+            asset_path: assetPath,
+            field: fieldHandle,
+        })
         return response.data
     } catch (error: any) {
         console.error('Alt text trigger request error:', error)
@@ -35,15 +42,12 @@ async function triggerAltTextGeneration(assetPath: string, fieldHandle: string):
 async function checkAltTextStatus(assetPath: string, fieldHandle: string): Promise<CheckAltTextResponse> {
     try {
         const cpRoot = getCpRoot()
-        const response = await Statamic.$app.config.globalProperties.$axios.get<CheckAltTextResponse>(
-            `${cpRoot}/auto-alt-text/check`,
-            {
-                params: {
-                    asset_path: assetPath,
-                    field: fieldHandle,
-                },
+        const response = await getAxios().get<CheckAltTextResponse>(`${cpRoot}/auto-alt-text/check`, {
+            params: {
+                asset_path: assetPath,
+                field: fieldHandle,
             },
-        )
+        })
         return response.data
     } catch (error: any) {
         console.error('Alt text check request error:', error)
@@ -59,11 +63,7 @@ function getMaxPollingAttempts(): number {
     return Math.ceil((timeoutSeconds + POLLING_BUFFER_SECONDS) / (POLLING_INTERVAL_MS / 1000))
 }
 
-async function pollForAltText(
-    assetPath: string,
-    handle: string,
-    update: (newValue: any) => void,
-): Promise<void> {
+async function pollForAltText(assetPath: string, handle: string, update: (newValue: any) => void): Promise<void> {
     let pollingAttempts = 0
     const maxAttempts = getMaxPollingAttempts()
 
@@ -111,7 +111,7 @@ Statamic.booting(() => {
     const enabledFields: string[] = addonConfig.enabledFields || ['alt', 'alt_text', 'alternative_text']
     const actionTitle: string = __('auto-alt-text::messages.generate_alt_text_action')
 
-    Statamic.$fieldActions.add('text-fieldtype', {
+    const fieldAction = {
         title: actionTitle,
         icon: 'image',
         visible: (payload: FieldActionPayload): boolean => {
@@ -142,13 +142,16 @@ Statamic.booting(() => {
                 }
 
                 await pollForAltText(assetId, handle, update)
-
             } catch (error: any) {
                 console.error('Error during alt text generation:', error)
                 Statamic.$toast.error(error.message || __('auto-alt-text::messages.unexpected_error'))
             }
-        }
-    })
+        },
+    }
 
-    console.log('Statamic Auto Alt Text Field Action Registered for text-fieldtype.')
+    for (const fieldtype of ['text-fieldtype', 'textarea-fieldtype']) {
+        Statamic.$fieldActions.add(fieldtype, { ...fieldAction })
+    }
+
+    console.log('Statamic Auto Alt Text Field Action Registered for text-fieldtype and textarea-fieldtype.')
 })

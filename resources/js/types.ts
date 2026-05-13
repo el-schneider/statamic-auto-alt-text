@@ -3,12 +3,9 @@ import { type Axios } from 'axios'
 declare global {
     const Statamic: {
         $app: {
-            config: {
-                globalProperties: {
-                    $axios: Axios
-                }
-            }
+            $axios: Axios
         }
+        $axios: Axios
         $toast: {
             success: (message: string) => void
             error: (message: string) => void
@@ -48,11 +45,13 @@ export interface FieldActionDefinition {
     icon?: string | ((payload: FieldActionPayload) => string)
     quick?: boolean | ((payload: FieldActionPayload) => boolean)
     dangerous?: boolean | ((payload: FieldActionPayload) => boolean)
-    confirm?: boolean | {
-        title?: string
-        body?: string
-        buttonText?: string
-    }
+    confirm?:
+        | boolean
+        | {
+              title?: string
+              body?: string
+              buttonText?: string
+          }
     run: (payload: FieldActionPayload) => void | Promise<void>
 }
 
