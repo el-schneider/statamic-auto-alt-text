@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.4 - 2026-05-13
+
+### Added
+
+- Add control panel field action support for `textarea` fields, so asset alt text fields configured as textareas can trigger AI generation (#11). Thanks @helloDanuk for the contribution.
+
+### Changed
+
+- Add Dependabot configuration and npm supply-chain hardening (#14)
+- Rebuild distributed control panel assets
+
 ## v1.0.3 - 2026-03-13
 
 ### Fixed
@@ -93,11 +104,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v2.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -110,6 +123,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
@@ -164,11 +178,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v1.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -182,6 +198,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
