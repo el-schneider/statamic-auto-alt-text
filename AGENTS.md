@@ -1,73 +1,39 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-**Statamic Auto Alt Text**. Automatically generate descriptive alt text for images in Statamic v5 using AI services (Moondream or OpenAI GPT-4 Vision)
-
-## Architecture
-
-### Core Components
-
-**Frontend (Vue/TypeScript)**
-
-- `resources/js/addon.ts`: Main addon entry point, registers field action
-- Vue components are mounted in Statamic's control panel UI
-
-## Laravel Auto-Registration
-
-### Event Listeners
-
-Laravel automatically discovers event listeners in `app/Listeners/` (or `src/Listeners/` for packages when configured):
-
-- Methods starting with `handle` or `__invoke` are registered as listeners
-- The event is determined by the type-hint in the method signature
-- No manual registration needed in ServiceProvider
+**Statamic Auto Alt Text**. Automatically generates descriptive alt text for images in Statamic v6 using AI services (Moondream or OpenAI). `main` targets Statamic v6; the v1 line for Statamic v5 lives on `backport/*` branches.
 
 ## Development Commands
 
 ### Code Quality
 
-Use prettier and pint to check and fix code quality.
-
 ```bash
-prettier --check .
-prettier --write .
-pint check
-pint fix
+npm run check   # prettier --check, pint --test
+npm run fix     # the same two, writing
 ```
 
 ### Testing
 
-#### Unit & Feature Tests
-
-Use pest to run automatic tests. If unsure always use context7 or web search to find the latest docs. Pest 4 is quite new.
-
 ```bash
-./vendor/bin/pest       # Run all tests
-./vendor/bin/pest --filter=SomeTest  # Run specific test
+./vendor/bin/pest
+./vendor/bin/pest --filter=SomeTest
 ```
 
-#### Integration Testing with Live App
+Browser tests live under `tests/Browser/` (Pest browser plugin).
 
-A full Laravel test app is available at `../statamic-auto-alt-text-test` and can be accessed at `http://statamic-auto-alt-text-test.test`.
+### Integration Testing
 
-**Credentials:**
+Verifying control panel changes in a browser needs a Statamic app with this addon installed as a path repository.
 
-- Email: `claude@claude.ai`
-- Password: `claude`
-- Login URL: `http://statamic-auto-alt-text-test.test/cp`
+## Contributing
 
-You can test the addon in the Statamic control panel using these credentials. For programmatic testing:
+- Comments say why, not what changed. History belongs in the PR.
+- UI changes: verify in a real browser (agent-browser, Chrome DevTools) and say what you checked. No browser automation available — ask, don't guess.
+- Add nothing you can derive or reuse.
+- Fix the cause, not the reported symptom.
+- No abstraction with a single caller.
+- Let failures surface. No try/catch for tidiness.
 
-**Browser approach** (recommended for complex interactions):
+## Off-Limits Files
 
-- Use your agent-browser skill
-
-**curl approach** (faster for API-only testing):
-
-- Obtain a session cookie via login, then use curl to test API endpoints
-- Example: `curl -b "cookies.txt" http://statamic-auto-alt-text-test.test/api/magic-actions/...`
-
-See the logs at `../statamic-auto-alt-text-test/storage/logs/laravel.log` when debugging errors.
+- **`resources/dist/`** — Built by CI on push to `main`. Do NOT commit build output.
+- **`CHANGELOG.md`** — Updated by CI on release. Do NOT edit.
