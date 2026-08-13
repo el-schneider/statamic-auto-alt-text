@@ -6,6 +6,7 @@ namespace Tests;
 
 use ElSchneider\StatamicAutoAltText\ServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Prism\Prism\PrismServiceProvider;
 // use RuntimeException;
 use RuntimeException;
 use Statamic\Testing\AddonTestCase;
@@ -30,6 +31,11 @@ abstract class TestCase extends AddonTestCase
         }
 
         parent::tearDown();
+    }
+
+    protected function getPackageProviders($app)
+    {
+        return [...parent::getPackageProviders($app), PrismServiceProvider::class];
     }
 
     protected function resolveApplicationConfiguration($app)
