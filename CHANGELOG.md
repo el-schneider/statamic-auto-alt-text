@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.5 - 2026-08-13
+
+### Fixed
+
+- Allow Prism 0.100 alongside 0.99. Composer's caret pins the minor on `0.x`, so `^0.99` blocked installation next to any package requiring Prism 0.100 (#18, prompted by #17 — thanks @axooh)
+
+### Changed
+
+- CI now runs the test suite against every supported Prism minor, and a new test covers the Prism request chain (#18)
+- Repair Dependabot config: the `github-actions` block used an unsupported cooldown option that disabled all version updates; Composer updates now use the `widen` strategy so future Prism minors arrive as range-widening PRs (#19)
+
 ## v1.0.5 - 2026-08-13
 
 ### Fixed
@@ -125,11 +136,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v2.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -145,6 +158,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
@@ -205,11 +219,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v1.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -226,6 +242,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
