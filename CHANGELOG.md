@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.0.5 - 2026-08-13
+
+### Fixed
+
+- Allow Prism 0.100 alongside 0.99, backported from v2. `^0.99` blocked installation next to any package requiring Prism 0.100 (#20)
+- Browser test now targets the Statamic 5 control panel markup; it had been written against Statamic 6 selectors and never ran on this branch (#20)
+
+### Changed
+
+- The test workflow now runs on the v1 branch, and CI covers both supported Prism minors (#20)
+
 ## v1.0.4 - 2026-05-13
 
 ### Fixed
@@ -113,11 +124,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v2.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -132,6 +145,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
@@ -190,11 +204,13 @@ OPENAI_ENDPOINT=https://api.openai.com/v1/chat/completions
 
 
 
+
 ```
 #### After (v1.0)
 
 ```env
 AUTO_ALT_TEXT_MODEL=openai/gpt-4.1
+
 
 
 
@@ -210,6 +226,7 @@ Re-publish the config to get the new structure:
 
 ```bash
 php artisan vendor:publish --tag=statamic-auto-alt-text-config --force
+
 
 
 
