@@ -2,19 +2,20 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, v1.x]
   pull_request:
-    branches: [main]
+    branches: [main, v1.x]
 
 jobs:
   test:
-    name: CI – PHP ${{ matrix.php }}
+    name: CI – PHP ${{ matrix.php }} / Prism ${{ matrix.prism }}
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: true
       matrix:
         php: ['8.3', '8.4']
+        prism: ['^0.99', '^0.100']
 
     steps:
       - uses: actions/checkout@v4
@@ -36,9 +37,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vendor
-          key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            composer-${{ matrix.php }}-
+          key: composer-${{ matrix.php }}-prism${{ matrix.prism }}
+
+      # Pin the Prism minor under test so the declared range is proven at both ends.
+      - name: Select Prism version
+        run: composer require "prism-php/prism:${{ matrix.prism }}" --no-update --no-interaction
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
